@@ -17,7 +17,7 @@ class LoginView extends StatelessWidget {
             SizedBox(height: 40),
             TextField(
               decoration: InputDecoration(
-                labelText: 'Correo',
+                labelText: 'Email',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Cambiado a un verde más claro
@@ -31,7 +31,7 @@ class LoginView extends StatelessWidget {
             TextField(
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Contraseña',
+                labelText: 'Password',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Cambiado a un verde más claro
@@ -50,7 +50,7 @@ class LoginView extends StatelessWidget {
                 // Lógica para iniciar sesión
                 Navigator.pushNamed(context, '/profile');
               },
-              child: Text('Iniciar Sesión', style: TextStyle(color: Colors.white)), // Color del texto
+              child: Text('Login', style: TextStyle(color: Colors.white)), // Color del texto
             ),
             SizedBox(height: 10),
             TextButton(
@@ -58,7 +58,7 @@ class LoginView extends StatelessWidget {
                 Navigator.pushNamed(context, '/register');
               },
               child: Text(
-                '¿No tienes cuenta? Regístrate',
+                'Dont have an account? Sign Up',
                 style: TextStyle(color: Colors.white), // Color del texto
               ),
             ),

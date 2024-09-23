@@ -11,13 +11,13 @@ class RegisterView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Regístrate',
+              'Sign Up!',
               style: TextStyle(fontSize: 32, color: Colors.white), // Título
             ),
             SizedBox(height: 40),
             TextField(
               decoration: InputDecoration(
-                labelText: 'Correo',
+                labelText: 'Email',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Verde más claro
@@ -31,7 +31,7 @@ class RegisterView extends StatelessWidget {
             TextField(
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Contraseña',
+                labelText: 'Password',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Verde más claro
@@ -44,7 +44,7 @@ class RegisterView extends StatelessWidget {
             SizedBox(height: 20),
             TextField(
               decoration: InputDecoration(
-                labelText: 'Nombre',
+                labelText: 'Name',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Verde más claro
@@ -57,7 +57,7 @@ class RegisterView extends StatelessWidget {
             SizedBox(height: 20),
             TextField(
               decoration: InputDecoration(
-                labelText: 'Dirección',
+                labelText: 'Address',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Verde más claro
@@ -70,7 +70,7 @@ class RegisterView extends StatelessWidget {
             SizedBox(height: 20),
             TextField(
               decoration: InputDecoration(
-                labelText: 'Teléfono',
+                labelText: 'Phone',
                 labelStyle: TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Color(0xFF007451), // Verde más claro
@@ -89,7 +89,7 @@ class RegisterView extends StatelessWidget {
                 // Lógica para registrar
                 Navigator.pushNamed(context, '/profile');
               },
-              child: Text('Registrar', style: TextStyle(color: Colors.white)), // Color del texto
+              child: Text('Register', style: TextStyle(color: Colors.white)), // Color del texto
             ),
             SizedBox(height: 10),
             TextButton(
@@ -97,7 +97,7 @@ class RegisterView extends StatelessWidget {
                 Navigator.pushNamed(context, '/login'); // Redirigir a login
               },
               child: Text(
-                'Ya tienes cuenta? Iniciar Sesión',
+                'Already have an account? Login',
                 style: TextStyle(color: Colors.white), // Color del texto
               ),
             ),
