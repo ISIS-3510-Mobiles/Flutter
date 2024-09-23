@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/features/personalization/screens/sustainability/sustainability.dart';
 import 'package:flutter_application_1/features/shop/screens/cart/cart.dart';
 import 'package:flutter_application_1/utils/theme/theme.dart';
 
@@ -37,48 +38,20 @@ class HomeScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) =>  CartScreen()),
                 );
               },
-              child: Text('Go to First View'),
+              child: Text('Cart'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SecondView()),
+                  MaterialPageRoute(builder: (context) => Sustainability()),
                 );
               },
-              child: Text('Go to Second View'),
+              child: Text('Sustainability'),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class FirstView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('First View'),
-      ),
-      body: Center(
-        child: Text('This is the First View'),
-      ),
-    );
-  }
-}
-
-class SecondView extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Second View'),
-      ),
-      body: Center(
-        child: Text('This is the Second View'),
       ),
     );
   }
