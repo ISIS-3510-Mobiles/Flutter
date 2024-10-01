@@ -4,10 +4,10 @@ import 'views/register_view.dart';
 import 'views/profile_view.dart';
 
 void main() {
-  runApp(EcoStyleApp());
+  runApp(MyApp());
 }
 
-class EcoStyleApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
