@@ -6,104 +6,111 @@ class RegisterView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF012826), // Fondo
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Sign Up!',
-              style: TextStyle(fontSize: 32, color: Colors.white), // Título
-            ),
-            const SizedBox(height: 40),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+      backgroundColor: Colors.white, // Fondo blanco
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color(0xFFECECEC), // Recuadro gris claro
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(24.0), // Espacio interno del recuadro
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sign Up!',
+                    style: TextStyle(
+                      fontSize: 28,
+                      color: Color(0xFF012826),
+                      fontWeight: FontWeight.bold,
+                    ), // Título en verde oscuro
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Email',
+                      filled: true,
+                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      filled: true,
+                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Name',
+                      filled: true,
+                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Address',
+                      filled: true,
+                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Phone',
+                      filled: true,
+                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerRight, // Botón alineado a la derecha
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF007451), // Botón verde lima
+                        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      ),
+                      onPressed: () {
+                        // Lógica para registrar
+                        Navigator.pushNamed(context, '/profile');
+                      },
+                      child: Text(
+                        'Register',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ), // Texto del botón en blanco
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Name',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Address',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Phone',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF007451), // Color del botón
-              ),
-              onPressed: () {
-                // Lógica para registrar
-                Navigator.pushNamed(context, '/profile');
-              },
-              child: const Text('Register', style: TextStyle(color: Colors.white)), // Color del texto
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/login'); // Redirigir a login
-              },
-              child: const Text(
-                'Already have an account? Login',
-                style: TextStyle(color: Colors.white), // Color del texto
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

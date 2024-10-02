@@ -1,3 +1,7 @@
 {
+profile
     "java.configuration.updateBuildConfiguration": "interactive"
+
+    "java.configuration.updateBuildConfiguration": "automatic"
+login-register
 }
