@@ -10,6 +10,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -18,14 +20,14 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/list', // Inicia en la vista de login
+      initialRoute: '/login', // Inicia en la vista de login
       routes: {
         '/login': (context) => LoginView(),
         '/register': (context) => RegisterView(),
         '/profile': (context) => ProfileView(),
         '/detail': (context) => DetailView(),
-        '/list': (context) => ListItemsView(),
-      },
+        '/list': (context) => ListItemsView(),     
+         },
     );
   }
 }
