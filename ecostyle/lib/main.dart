@@ -4,9 +4,15 @@ import 'views/detail_view.dart';
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/profile_view.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Asegura que los widgets estén inicializados
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); // Inicializa Firebase
+  runApp(const MyApp()); // Ejecuta la aplicación
 }
 
 class MyApp extends StatelessWidget {
@@ -26,8 +32,8 @@ class MyApp extends StatelessWidget {
         '/register': (context) => RegisterView(),
         '/profile': (context) => ProfileView(),
         '/detail': (context) => DetailView(),
-        '/list': (context) => ListItemsView(),     
-         },
+        '/list': (context) => ListItemsView(),
+      },
     );
   }
 }
