@@ -1,8 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LoginView extends StatelessWidget {
-  const LoginView({super.key});
+  LoginView({super.key}); // Constructor no constante
+
+  // Instancia de FirebaseAuth
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _loginWithEmailAndPassword(BuildContext context, String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Si el inicio de sesión es exitoso, navega a la vista de la lista
+      Navigator.pushNamed(context, '/list');
+    } on FirebaseAuthException catch (e) {
+      // Manejar errores de autenticación
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.message}')),
+      );
+    }
+  }
 
   Future<void> _authenticateWithBiometrics(BuildContext context) async {
     final LocalAuthentication auth = LocalAuthentication();
@@ -33,30 +53,11 @@ class LoginView extends StatelessWidget {
     }
   }
 
-  Future<void> authenticate(BuildContext context) async {
-    final LocalAuthentication localAuth = LocalAuthentication();
-    bool authenticated = false;
-
-    try {
-      authenticated = await localAuth.authenticate(
-        localizedReason: 'Please authenticate to login',
-        options: const AuthenticationOptions(biometricOnly: true),
-      );
-    } catch (e) {
-      // Manejar el error, por ejemplo, mostrar un snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Authentication failed')),
-      );
-    }
-
-    if (authenticated) {
-      // Si la autenticación es exitosa, navegar a la vista de la lista
-      Navigator.pushNamed(context, '/list');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    String email = '';
+    String password = '';
+
     return Scaffold(
       backgroundColor: Colors.white, // Fondo blanco
       body: Center(
@@ -82,6 +83,7 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   TextField(
+                    onChanged: (value) => email = value, // Guardar el email
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,
@@ -94,6 +96,7 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextField(
+                    onChanged: (value) => password = value, // Guardar la contraseña
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Password',
@@ -115,8 +118,8 @@ class LoginView extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () {
-                            // Lógica para iniciar sesión
-                            Navigator.pushNamed(context, '/list'); // Navegar a la vista de la lista
+                            // Lógica para iniciar sesión con correo y contraseña
+                            _loginWithEmailAndPassword(context, email, password);
                           },
                           child: const Text(
                             'Login',
