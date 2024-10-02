@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LoginView extends StatelessWidget {
-
   const LoginView({super.key});
 
   Future<void> _authenticateWithBiometrics(BuildContext context) async {
@@ -18,8 +17,8 @@ class LoginView extends StatelessWidget {
       );
 
       if (authenticated) {
-        // Si la autenticación es exitosa, navega a la vista del perfil
-        Navigator.pushNamed(context, '/profile');
+        // Si la autenticación es exitosa, navega a la vista de la lista
+        Navigator.pushNamed(context, '/list');
       } else {
         // Manejar el caso donde la autenticación falla
         ScaffoldMessenger.of(context).showSnackBar(
@@ -32,10 +31,10 @@ class LoginView extends StatelessWidget {
         const SnackBar(content: Text('Error authenticating')),
       );
     }
-
-  final LocalAuthentication localAuth = LocalAuthentication();
+  }
 
   Future<void> authenticate(BuildContext context) async {
+    final LocalAuthentication localAuth = LocalAuthentication();
     bool authenticated = false;
 
     try {
@@ -51,83 +50,14 @@ class LoginView extends StatelessWidget {
     }
 
     if (authenticated) {
-      // Si la autenticación es exitosa, navegar a la vista del perfil
-      Navigator.pushNamed(context, '/profile');
+      // Si la autenticación es exitosa, navegar a la vista de la lista
+      Navigator.pushNamed(context, '/list');
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      backgroundColor: const Color(0xFF012826), // Fondo
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'EcoStyle',
-              style: TextStyle(fontSize: 32, color: Colors.white), // Título
-            ),
-            const SizedBox(height: 40),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Cambiado a un verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8), // Ajustar los bordes redondeados
-                  borderSide: BorderSide.none, // Sin borde visible
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              obscureText: true, // Para ocultar la contraseña
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: const Color(0xFF007451), // Cambiado a un verde más claro
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF007451), // Color del botón
-              ),
-              onPressed: () {
-                // Lógica para iniciar sesión
-                Navigator.pushNamed(context, '/profile');
-              },
-              child: const Text('Login', style: TextStyle(color: Colors.white)), // Color del texto
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF007451), // Color del botón
-              ),
-              onPressed: () {
-                _authenticateWithBiometrics(context); // Llama a la autenticación biométrica
-              },
-              child: const Text('Login with Biometrics', style: TextStyle(color: Colors.white)), // Color del texto
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text(
-                'Don\'t have an account? Sign Up',
-                style: TextStyle(color: Colors.white), // Color del texto
-
       backgroundColor: Colors.white, // Fondo blanco
       body: Center(
         child: SingleChildScrollView(
@@ -186,7 +116,7 @@ class LoginView extends StatelessWidget {
                           ),
                           onPressed: () {
                             // Lógica para iniciar sesión
-                            Navigator.pushNamed(context, '/profile');
+                            Navigator.pushNamed(context, '/list'); // Navegar a la vista de la lista
                           },
                           child: const Text(
                             'Login',
@@ -216,13 +146,20 @@ class LoginView extends StatelessWidget {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF007451), // Botón verde lima
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16), // Ajustar el tamaño del botón
                     ),
-                    onPressed: () => authenticate(context), // Autenticación biométrica
-                    child: const Text(
-                      'Login with FaceID',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ), // Texto del botón en blanco
+                    onPressed: () => _authenticateWithBiometrics(context), // Autenticación biométrica
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.face, color: Colors.white), // Icono de FaceID
+                        const SizedBox(width: 8), // Espacio entre el icono y el texto
+                        const Text(
+                          'FaceID', // Texto del botón
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ), // Texto del botón en blanco
+                      ],
+                    ),
                   ),
                 ],
               ),
