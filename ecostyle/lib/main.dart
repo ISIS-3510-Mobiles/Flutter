@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'views/list_items_view.dart';
+import 'views/detail_view.dart';
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/profile_view.dart';
 
 void main() {
-  runApp(EcoStyleApp());
+  runApp(MyApp());
 }
 
-class EcoStyleApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,11 +18,13 @@ class EcoStyleApp extends StatelessWidget {
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/login', // Inicia en la vista de login
+      initialRoute: '/list', // Inicia en la vista de login
       routes: {
         '/login': (context) => LoginView(),
         '/register': (context) => RegisterView(),
         '/profile': (context) => ProfileView(),
+        '/detail': (context) => DetailView(),
+        '/list': (context) => ListItemsView(),
       },
     );
   }
