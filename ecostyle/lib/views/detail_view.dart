@@ -90,7 +90,7 @@ class DetailView extends StatelessWidget {
                         // Lógica para comprar
                       },
                       child: Text(
-                        'Comprar',
+                        'Buy now',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
@@ -104,13 +104,13 @@ class DetailView extends StatelessWidget {
                         // Lógica para agregar al carrito
                       },
                       child: Text(
-                        'Agregar al carrito',
+                        'Add to Cart',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'Productos similares:',
+                      'Similar products:',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
                     SizedBox(height: 10),
