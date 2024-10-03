@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart'; // Usar esta librería para funciones de listas
 import 'package:geolocator/geolocator.dart'; // Para obtener la ubicación del usuario
 import 'dart:math'; // Para calcular la distancia entre dos puntos
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 
 class ListItemsView extends StatefulWidget {
   @override
@@ -31,6 +34,27 @@ class _ListItemsViewState extends State<ListItemsView> {
 
   List<Map<String, dynamic>> recentlyViewedItems = [];
   Position? userPosition;
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
+  void _storeProductView(Map<String, dynamic> product) async {
+    CollectionReference views = FirebaseFirestore.instance.collection('product_views');
+    
+    await views.add({
+      'title': product['title'],
+      'category': product['category'],
+      'price': product['price'],
+      'viewed_at': DateTime.now(),
+    });
+
+    // Enviar evento a Firebase Analytics
+    await analytics.logEvent(
+      name: 'view_product',
+      parameters: {
+        'title': product['title'],
+        'category': product['category'],
+      },
+    );
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -73,6 +97,7 @@ class _ListItemsViewState extends State<ListItemsView> {
             return GestureDetector(
               onTap: () {
                 // Navega a la vista de detalles y agrega el ítem a la lista de últimos vistos, también actualiza la lista de items
+                _storeProductView(item); 
                 _viewItem(context, item);
               },
               child: Card(
