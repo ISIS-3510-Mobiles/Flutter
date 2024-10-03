@@ -10,24 +10,24 @@ class ListItemsView extends StatefulWidget {
 
 class _ListItemsViewState extends State<ListItemsView> {
   final List<Map<String, dynamic>> original_items = [
-    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it."},
-    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore."},
-    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore."},
-    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color."},
-    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps."},
-    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often."},
-    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now."}
-  ];
+    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket"},
+    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore.", "category": "Jacket"},
+    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore.", "category": "Hoodie"},
+    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color.", "category": "Jacket"},
+    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps.", "category": "Cap"},
+    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often.", "category": "Cap"},
+    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now.", "category": "Cap"}
+];
 
   List<Map<String, dynamic>> items = [
-    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it."},
-    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore."},
-    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore."},
-    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color."},
-    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps."},
-    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often."},
-    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now."}
-  ];
+    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket"},
+    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore.", "category": "Jacket"},
+    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore.", "category": "Hoodie"},
+    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color.", "category": "Jacket"},
+    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps.", "category": "Cap"},
+    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often.", "category": "Cap"},
+    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now.", "category": "Cap"}
+];
 
   List<Map<String, dynamic>> recentlyViewedItems = [];
   Position? userPosition;
