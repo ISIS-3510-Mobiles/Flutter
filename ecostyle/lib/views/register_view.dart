@@ -1,7 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importa Firebase Authentication
 
-class RegisterView extends StatelessWidget {
+class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
+
+  @override
+  _RegisterViewState createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Instancia de FirebaseAuth
+
+  // Variables para almacenar los datos del usuario
+  String email = '';
+  String password = '';
+  String name = '';
+  String address = '';
+  String phone = '';
+
+  // Método para registrar al usuario
+  Future<void> _registerWithEmailAndPassword() async {
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration Successful')),
+      );
+      // Redirige a la vista de perfil después del registro
+      Navigator.pushNamed(context, '/profile');
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.message}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +65,9 @@ class RegisterView extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   TextField(
+                    onChanged: (value) => setState(() {
+                      email = value;
+                    }),
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,
@@ -43,6 +81,9 @@ class RegisterView extends StatelessWidget {
                   SizedBox(height: 12),
                   TextField(
                     obscureText: true,
+                    onChanged: (value) => setState(() {
+                      password = value;
+                    }),
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
@@ -55,6 +96,9 @@ class RegisterView extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   TextField(
+                    onChanged: (value) => setState(() {
+                      name = value;
+                    }),
                     decoration: InputDecoration(
                       hintText: 'Name',
                       filled: true,
@@ -67,6 +111,9 @@ class RegisterView extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   TextField(
+                    onChanged: (value) => setState(() {
+                      address = value;
+                    }),
                     decoration: InputDecoration(
                       hintText: 'Address',
                       filled: true,
@@ -79,6 +126,9 @@ class RegisterView extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   TextField(
+                    onChanged: (value) => setState(() {
+                      phone = value;
+                    }),
                     decoration: InputDecoration(
                       hintText: 'Phone',
                       filled: true,
@@ -98,8 +148,8 @@ class RegisterView extends StatelessWidget {
                         padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                       ),
                       onPressed: () {
-                        // Lógica para registrar
-                        Navigator.pushNamed(context, '/profile');
+                        // Llama al método de registro con Firebase
+                        _registerWithEmailAndPassword();
                       },
                       child: Text(
                         'Register',
