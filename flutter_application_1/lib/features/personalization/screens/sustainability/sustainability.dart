@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/features/personalization/models/sustainability_model.dart';
+import 'package:flutter_application_1/features/personalization/screens/sustainability/widgets/launcher.dart';
 
 class Sustainability extends StatelessWidget {
   const Sustainability({super.key});
@@ -8,7 +9,7 @@ class Sustainability extends StatelessWidget {
   Future<SustainabilityImpact> fetchSustainabilityData() async {
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
         .collection('sustainability')
-        .doc('impactData') 
+        .doc('impactData')
         .get();
 
     return SustainabilityImpact.fromFirestore(snapshot.data() as Map<String, dynamic>);
@@ -89,6 +90,14 @@ class Sustainability extends StatelessWidget {
           valueColor: AlwaysStoppedAnimation<Color>(color),
         ),
         SizedBox(height: 20),
+        // Button to open the external video link
+        ElevatedButton(
+          onPressed: launchURL(),
+          child: Text('Watch Impact Video'),
+          style: ElevatedButton.styleFrom(
+            overlayColor: Colors.blue, // Button color
+          ),
+        ),
       ],
     );
   }
