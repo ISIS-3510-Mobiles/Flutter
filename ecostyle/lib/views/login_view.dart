@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class LoginView extends StatelessWidget {
   LoginView({super.key}); // Constructor no constante
 
   // Instancia de FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance; // Instancia de FirebaseAnalytics
 
   Future<void> _loginWithEmailAndPassword(BuildContext context, String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
+      );
+      // Registrar evento de inicio de sesión
+      await analytics.logEvent(
+        name: 'user_login',
+        parameters: {
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        },
       );
       // Si el inicio de sesión es exitoso, navega a la vista de la lista
       Navigator.pushNamed(context, '/list');
@@ -37,6 +46,13 @@ class LoginView extends StatelessWidget {
       );
 
       if (authenticated) {
+        // Registrar evento de inicio de sesión
+        await analytics.logEvent(
+          name: 'user_login_biometrics',
+          parameters: {
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+          },
+        );
         // Si la autenticación es exitosa, navega a la vista de la lista
         Navigator.pushNamed(context, '/list');
       } else {
