@@ -30,7 +30,7 @@ class _RegisterViewState extends State<RegisterView> {
         const SnackBar(content: Text('Registration Successful')),
       );
       // Redirige a la vista de perfil después del registro
-      Navigator.pushNamed(context, '/list');
+      Navigator.pushNamed(context, '/profile');
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.message}')),
