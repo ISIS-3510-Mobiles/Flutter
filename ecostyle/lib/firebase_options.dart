@@ -24,10 +24,7 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
@@ -53,12 +50,24 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCrTe8qhEj0TSDPfUJ_G1RYNDNv9lLNnpQ',
-    appId: '1:102684705978:ios:25ece46ee72ce5596bee83',
-    messagingSenderId: '102684705978',
-    projectId: 'dart-firebase-eb946',
-    storageBucket: 'dart-firebase-eb946.appspot.com',
+    apiKey: 'AIzaSyBN7fz_HK7v5-hBa0UJaJ_I7uo4T1rz4oY',
+    appId: '1:5927054034:ios:6e26082065695802195b0b',
+    messagingSenderId: '5927054034',
+    projectId: 'kotlin-firebase-503a6',
+    databaseURL: 'https://kotlin-firebase-503a6-default-rtdb.firebaseio.com',
+    storageBucket: 'kotlin-firebase-503a6.appspot.com',
+    androidClientId: '5927054034-9k5fpblmkfv2ciphq775ot7ea88tvdko.apps.googleusercontent.com',
+    iosClientId: '5927054034-upn8j9kh625p8bi6l0dfhesiig3onird.apps.googleusercontent.com',
     iosBundleId: 'com.davidarturolr.ecostyle',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCvqyRx1DSP8KRysiCVEgDbyZ6kCuMNhDY',
+    appId: '1:5927054034:android:05678d069ef530db195b0b',
+    messagingSenderId: '5927054034',
+    projectId: 'kotlin-firebase-503a6',
+    databaseURL: 'https://kotlin-firebase-503a6-default-rtdb.firebaseio.com',
+    storageBucket: 'kotlin-firebase-503a6.appspot.com',
   );
 
 }
