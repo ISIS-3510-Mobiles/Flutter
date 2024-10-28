@@ -4,38 +4,52 @@ import 'package:local_auth/local_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class LoginView extends StatelessWidget {
-  LoginView({super.key}); // Constructor no constante
+  LoginView({super.key});
 
-  // Instancia de FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseAnalytics analytics = FirebaseAnalytics.instance; // Instancia de FirebaseAnalytics
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   Future<void> _loginWithEmailAndPassword(BuildContext context, String email, String password) async {
+    // Check if email is empty or invalid
+    if (email.isEmpty) {
+      _showError(context, 'Email cannot be empty');
+      return;
+    } else if (!_isValidEmail(email)) {
+      _showError(context, 'Invalid email format. Ensure it does not contain spaces and follows "example@domain.com" format');
+      return;
+    }
+
+    // Check if password is empty or too short
+    if (password.isEmpty) {
+      _showError(context, 'Password cannot be empty');
+      return;
+    } else if (!_isValidPassword(password)) {
+      _showError(context, 'Password must be at least 8 characters long and contain no spaces');
+      return;
+    }
+
     try {
+      // Attempt to sign in with email and password
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+        email: email.trim(),
+        password: password.trim(),
       );
-      // Registrar evento de inicio de sesión
+
+      // Log successful login event
       await analytics.logEvent(
         name: 'user_login',
-        parameters: {
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        },
+        parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
       );
-      // Si el inicio de sesión es exitoso, navega a la vista de la lista
+
+      // Navigate to list view on successful login
       Navigator.pushNamed(context, '/list');
     } on FirebaseAuthException catch (e) {
-      // Manejar errores de autenticación
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message}')),
-      );
+      _showError(context, 'Login failed: ${e.message}');
     }
   }
 
   Future<void> _authenticateWithBiometrics(BuildContext context) async {
     final LocalAuthentication auth = LocalAuthentication();
-
     try {
       bool authenticated = await auth.authenticate(
         localizedReason: 'Please authenticate to log in',
@@ -46,27 +60,30 @@ class LoginView extends StatelessWidget {
       );
 
       if (authenticated) {
-        // Registrar evento de inicio de sesión
         await analytics.logEvent(
           name: 'user_login_biometrics',
-          parameters: {
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          },
+          parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
         );
-        // Si la autenticación es exitosa, navega a la vista de la lista
         Navigator.pushNamed(context, '/list');
       } else {
-        // Manejar el caso donde la autenticación falla
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentication failed')),
-        );
+        _showError(context, 'Authentication failed. Please try again.');
       }
     } catch (e) {
-      // Manejar excepciones
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error authenticating')),
-      );
+      _showError(context, 'Error authenticating. Please try again.');
     }
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email) && !email.contains(' ');
+  }
+
+  bool _isValidPassword(String password) {
+    return password.trim().isNotEmpty && password.length >= 8;
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -75,17 +92,17 @@ class LoginView extends StatelessWidget {
     String password = '';
 
     return Scaffold(
-      backgroundColor: Colors.white, // Fondo blanco
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFECECEC), // Recuadro gris claro
+                color: const Color(0xFFECECEC),
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.all(24.0), // Espacio interno del recuadro
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -95,15 +112,15 @@ class LoginView extends StatelessWidget {
                       fontSize: 32,
                       color: const Color(0xFF012826),
                       fontWeight: FontWeight.bold,
-                    ), // Título en verde oscuro
+                    ),
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    onChanged: (value) => email = value, // Guardar el email
+                    onChanged: (value) => email = value,
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -112,12 +129,12 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    onChanged: (value) => password = value, // Guardar la contraseña
+                    onChanged: (value) => password = value,
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -130,24 +147,23 @@ class LoginView extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF007451), // Botón verde lima
+                            backgroundColor: const Color(0xFF007451),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () {
-                            // Lógica para iniciar sesión con correo y contraseña
                             _loginWithEmailAndPassword(context, email, password);
                           },
                           child: const Text(
                             'Login',
                             style: TextStyle(color: Colors.white, fontSize: 16),
-                          ), // Texto del botón en blanco
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 10), // Espacio entre los botones
+                      const SizedBox(width: 10),
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF007451), // Botón verde lima
+                            backgroundColor: const Color(0xFF007451),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () {
@@ -156,7 +172,7 @@ class LoginView extends StatelessWidget {
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(color: Colors.white, fontSize: 16),
-                          ), // Texto del botón en blanco
+                          ),
                         ),
                       ),
                     ],
@@ -164,19 +180,19 @@ class LoginView extends StatelessWidget {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007451), // Botón verde lima
-                      padding: const EdgeInsets.symmetric(vertical: 16), // Ajustar el tamaño del botón
+                      backgroundColor: const Color(0xFF007451),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    onPressed: () => _authenticateWithBiometrics(context), // Autenticación biométrica
+                    onPressed: () => _authenticateWithBiometrics(context),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.face, color: Colors.white), // Icono de FaceID
-                        const SizedBox(width: 8), // Espacio entre el icono y el texto
+                        const Icon(Icons.face, color: Colors.white),
+                        const SizedBox(width: 8),
                         const Text(
-                          'FaceID', // Texto del botón
+                          'FaceID',
                           style: TextStyle(color: Colors.white, fontSize: 16),
-                        ), // Texto del botón en blanco
+                        ),
                       ],
                     ),
                   ),
