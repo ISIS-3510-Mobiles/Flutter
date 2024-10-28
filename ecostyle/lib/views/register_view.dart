@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Importa Firebase Authentication
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -9,49 +9,107 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  final FirebaseAuth _auth = FirebaseAuth.instance; // Instancia de FirebaseAuth
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Variables para almacenar los datos del usuario
   String email = '';
   String password = '';
   String name = '';
   String address = '';
   String phone = '';
 
-  // Método para registrar al usuario
-  Future<void> _registerWithEmailAndPassword() async {
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  // Method to show error messages
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration Successful')),
-      );
-      // Redirige a la vista de perfil después del registro
-      Navigator.pushNamed(context, '/list');
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message}')),
-      );
+  // Validation functions with error messages
+  bool _validateEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(email) || email.contains(' ')) {
+      _showErrorMessage('Invalid email format. Please enter a valid email address.');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validatePassword(String password) {
+    final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
+    if (!passwordRegex.hasMatch(password) || password.contains(' ')) {
+      _showErrorMessage('Password must be at least 8 characters long and include uppercase, lowercase, a digit, and a special character without spaces.');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validateName(String name) {
+    final nameRegex = RegExp(r'^[a-zA-Z\s]{2,50}$');
+    if (!nameRegex.hasMatch(name)) {
+      _showErrorMessage('Name should only contain letters and spaces, and be between 2 and 50 characters.');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validateAddress(String address) {
+    final addressRegex = RegExp(r'^[a-zA-Z0-9\s,.-]{5,100}$');
+    if (!addressRegex.hasMatch(address) || RegExp(r'^\d+$').hasMatch(address)) {
+      _showErrorMessage('Address must be between 5 and 100 characters and not contain only numbers.');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validatePhone(String phone) {
+    final phoneRegex = RegExp(r'^[1-9]\d{9}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      _showErrorMessage('Phone number should be 10 digits long and cannot start with 0.');
+      return false;
+    }
+    return true;
+  }
+
+  // Method to register the user
+  Future<void> _registerWithEmailAndPassword() async {
+    if (_validateEmail(email) &&
+        _validatePassword(password) &&
+        _validateName(name) &&
+        _validateAddress(address) &&
+        _validatePhone(phone)) {
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration Successful')),
+        );
+
+        Navigator.pushNamed(context, '/profile');
+      } on FirebaseAuthException catch (e) {
+        _showErrorMessage('Error: ${e.message}');
+      }
+    } else {
+      _showErrorMessage('Please check your input for errors.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Fondo blanco
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xFFECECEC), // Recuadro gris claro
+                color: Color(0xFFECECEC),
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: const EdgeInsets.all(24.0), // Espacio interno del recuadro
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -61,7 +119,7 @@ class _RegisterViewState extends State<RegisterView> {
                       fontSize: 28,
                       color: Color(0xFF012826),
                       fontWeight: FontWeight.bold,
-                    ), // Título en verde oscuro
+                    ),
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -71,7 +129,7 @@ class _RegisterViewState extends State<RegisterView> {
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -87,7 +145,7 @@ class _RegisterViewState extends State<RegisterView> {
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -102,7 +160,7 @@ class _RegisterViewState extends State<RegisterView> {
                     decoration: InputDecoration(
                       hintText: 'Name',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -117,7 +175,7 @@ class _RegisterViewState extends State<RegisterView> {
                     decoration: InputDecoration(
                       hintText: 'Address',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -132,7 +190,7 @@ class _RegisterViewState extends State<RegisterView> {
                     decoration: InputDecoration(
                       hintText: 'Phone',
                       filled: true,
-                      fillColor: Colors.white, // Fondo blanco de las cajas de texto
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -141,20 +199,19 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   SizedBox(height: 20),
                   Align(
-                    alignment: Alignment.centerRight, // Botón alineado a la derecha
+                    alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF007451), // Botón verde lima
+                        backgroundColor: Color(0xFF007451),
                         padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                       ),
                       onPressed: () {
-                        // Llama al método de registro con Firebase
                         _registerWithEmailAndPassword();
                       },
                       child: Text(
                         'Register',
                         style: TextStyle(color: Colors.white, fontSize: 16),
-                      ), // Texto del botón en blanco
+                      ),
                     ),
                   ),
                 ],

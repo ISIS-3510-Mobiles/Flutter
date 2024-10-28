@@ -63,6 +63,8 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
   - Flutter (1.0.0)
+  - geolocator_apple (1.2.0):
+    - Flutter
   - GoogleAppMeasurement (11.2.0):
     - GoogleAppMeasurement/AdIdSupport (= 11.2.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
@@ -130,6 +132,7 @@ DEPENDENCIES:
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - Flutter (from `Flutter`)
+  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - local_auth_darwin (from `.symlinks/plugins/local_auth_darwin/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
 
@@ -160,6 +163,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_core/ios"
   Flutter:
     :path: Flutter
+  geolocator_apple:
+    :path: ".symlinks/plugins/geolocator_apple/ios"
   local_auth_darwin:
     :path: ".symlinks/plugins/local_auth_darwin/darwin"
   path_provider_foundation:
@@ -179,6 +184,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: ac26d09a70c730e497936430af4e60fb0c68ec4e
   FirebaseInstallations: 58cf94dabf1e2bb2fa87725a9be5c2249171cda0
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  geolocator_apple: 6cbaf322953988e009e5ecb481f07efece75c450
   GoogleAppMeasurement: 76d4f8b36b03bd8381fa9a7fe2cc7f99c0a2e93a
   GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
