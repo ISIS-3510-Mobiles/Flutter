@@ -1,3 +1,5 @@
+import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
+import 'package:ecostyle/shop/screens/cart/cart.dart';
 import 'package:flutter/material.dart';
 import 'views/list_items_view.dart';
 import 'views/detail_view.dart';
@@ -33,6 +35,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => ProfileView(),
         '/detail': (context) => DetailView(),
         '/list': (context) => ListItemsView(),
+        '/cart': (context) => CartScreen(),
+        '/sustainability': (context) => Sustainability(),
       },
     );
   }
