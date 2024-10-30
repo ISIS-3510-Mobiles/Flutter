@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class UpdateInfoView extends StatefulWidget {
   const UpdateInfoView({super.key});
@@ -26,7 +27,6 @@ class _UpdateInfoViewState extends State<UpdateInfoView> {
   @override
   void initState() {
     super.initState();
-    // Load current user info on initialization
     _loadCurrentUserInfo();
   }
 
@@ -42,13 +42,22 @@ class _UpdateInfoViewState extends State<UpdateInfoView> {
           address = userDoc['address'];
           phone = userDoc['phone'];
 
-          // Update controllers with current values
           nameController.text = name;
           addressController.text = address;
           phoneController.text = phone;
         });
       }
     }
+  }
+
+  // Method to check internet connection
+  Future<bool> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      _showErrorMessage('No internet connection. Please try again later.');
+      return false;
+    }
+    return true;
   }
 
   // Method to show error messages
@@ -89,23 +98,23 @@ class _UpdateInfoViewState extends State<UpdateInfoView> {
   // Method to update user info
   Future<void> _updateUserInfo() async {
     if (_validateName(name) && _validateAddress(address) && _validatePhone(phone)) {
-      try {
-        User? user = _auth.currentUser;
+      if (await _checkInternetConnection()) {  // Check for internet connection
+        try {
+          User? user = _auth.currentUser;
 
-        if (user != null) {
-          // Update user info in Firestore
-          await _firestore.collection('User').doc(user.email).update({
-            'name': name,
-            'address': address,
-            'phone': phone,
-          });
+          if (user != null) {
+            await _firestore.collection('User').doc(user.email).update({
+              'name': name,
+              'address': address,
+              'phone': phone,
+            });
 
-          _showErrorMessage('Information updated successfully!');
-          // Navigate back to profile or another screen
-          Navigator.pop(context);
+            _showErrorMessage('Information updated successfully!');
+            Navigator.pop(context);
+          }
+        } catch (e) {
+          _showErrorMessage('Error: ${e.toString()}');
         }
-      } catch (e) {
-        _showErrorMessage('Error: ${e.toString()}');
       }
     } else {
       _showErrorMessage('Please check your input for errors.');
@@ -139,7 +148,7 @@ class _UpdateInfoViewState extends State<UpdateInfoView> {
                   ),
                   SizedBox(height: 20),
                   TextField(
-                    readOnly: true, // Email should not be editable
+                    readOnly: true,
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ChangePasswordView extends StatefulWidget {
   const ChangePasswordView({super.key});
@@ -15,44 +16,59 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   String? _errorMessage;
 
   bool _isPasswordValid(String password) {
-    // Validación de contraseña
     final RegExp passwordRegex = RegExp(
       r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
     );
     return passwordRegex.hasMatch(password);
   }
 
+  Future<bool> _checkInternetConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      _showErrorMessage('No internet connection. Please try again later.');
+      return false;
+    }
+    return true;
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _changePassword() async {
-    try {
-      if (_newPasswordController.text != _confirmPasswordController.text) {
-        setState(() {
-          _errorMessage = 'Passwords do not match';
-        });
-        return;
-      }
+    if (await _checkInternetConnection()) {  // Verificación de conexión a internet
+      try {
+        if (_newPasswordController.text != _confirmPasswordController.text) {
+          setState(() {
+            _errorMessage = 'Passwords do not match';
+          });
+          return;
+        }
 
-      if (!_isPasswordValid(_newPasswordController.text)) {
-        setState(() {
-          _errorMessage = 'Password must be at least 8 characters long, '
-              'include an uppercase letter, a lowercase letter, a digit, '
-              'and a special character without spaces.';
-        });
-        return;
-      }
+        if (!_isPasswordValid(_newPasswordController.text)) {
+          setState(() {
+            _errorMessage = 'Password must be at least 8 characters long, '
+                'include an uppercase letter, a lowercase letter, a digit, '
+                'and a special character without spaces.';
+          });
+          return;
+        }
 
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await user.updatePassword(_newPasswordController.text);
-        // Mostrar mensaje de éxito
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password changed successfully!')),
-        );
-        Navigator.pop(context); // Regresar a la vista de perfil después de cambiar la contraseña
+        User? user = _auth.currentUser;
+        if (user != null) {
+          await user.updatePassword(_newPasswordController.text);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password changed successfully!')),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        setState(() {
+          _errorMessage = 'Failed to change password: ${e.toString()}';
+        });
       }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to change password: ${e.toString()}';
-      });
     }
   }
 
@@ -124,7 +140,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                         backgroundColor: const Color(0xFF007451),
                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                       ),
-                      onPressed: _changePassword, // Lógica para cambiar la contraseña
+                      onPressed: _changePassword,
                       child: const Text('Change Password', style: TextStyle(color: Colors.white)),
                     ),
                   ),

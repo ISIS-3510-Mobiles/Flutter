@@ -41,6 +41,7 @@ dependencies:
   geolocator: ^13.0.1
   provider: ^6.1.2
   cloud_firestore: ^5.4.4
+  connectivity_plus: ^4.0.2
 
  
 
