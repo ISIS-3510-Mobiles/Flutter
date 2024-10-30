@@ -66,4 +66,12 @@ class CartScreen extends StatelessWidget {
   double _calculateTotal(List<ProductModel> items) {
     return items.fold(0, (total, item) => total + item.price);
   }
+
+  // Method to remove item from the cart
+  Future<void> _removeFromCart(BuildContext context, String itemId) async {
+    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+    await firebaseService.removeItemFromCart(itemId); // Call your Firebase service to remove the item
+    // Optionally, you can show a snackbar or update the UI
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Item removed from cart')));
+  }
 }

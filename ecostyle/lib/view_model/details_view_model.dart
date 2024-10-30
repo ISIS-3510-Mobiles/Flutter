@@ -1,11 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ecostyle/models/product_model.dart';
 
 class DetailViewModel extends ChangeNotifier {
   late ProductModel currentItem;
   late List<ProductModel> recommendedItems;
-
-  List<ProductModel> cartItems = []; // List to hold cart items
 
   // Initialize product data and recommendations
   void init(ProductModel item, List<ProductModel> allItems) {
@@ -15,7 +14,8 @@ class DetailViewModel extends ChangeNotifier {
   }
 
   // Method to get recommended products
-  List<ProductModel> _getRecommendedItems(ProductModel currentItem, List<ProductModel> allItems) {
+  List<ProductModel> _getRecommendedItems(ProductModel currentItem,
+      List<ProductModel> allItems) {
     String title = currentItem.title.toLowerCase();
     List<ProductModel> similarItems = [];
 
@@ -24,8 +24,10 @@ class DetailViewModel extends ChangeNotifier {
 
     for (String word in words) {
       for (var item in allItems) {
-        if (item.title != currentItem.title && item.title.toLowerCase().contains(word)) {
-          if (!similarItems.any((selectedItem) => selectedItem.title == item.title)) {
+        if (item.title != currentItem.title &&
+            item.title.toLowerCase().contains(word)) {
+          if (!similarItems.any((selectedItem) =>
+          selectedItem.title == item.title)) {
             similarItems.add(item);
           }
         }
@@ -44,37 +46,16 @@ class DetailViewModel extends ChangeNotifier {
     }
   }
 
-  // Add the current item to the cart
-  void addToCart(ProductModel item) {
-    cartItems.add(item);
-    notifyListeners(); // Notify listeners to update UI
-    print('Added to cart: ${item.title}');
-  }
+  Future<void> addToCart(ProductModel item) async {
+    String userId = "temp"; // Retrieve this from your authentication method
+    DocumentReference cartRef = FirebaseFirestore.instance.collection('carts_users')
+        .doc(userId);
 
-  // Remove an item from the cart
-  void removeFromCart(ProductModel item) {
-    cartItems.removeWhere((cartItem) => cartItem.title == item.title);
-    notifyListeners(); // Notify the view that the cart has changed
-  }
+    // Add item to the cart
+    await cartRef.set({
+      'items': FieldValue.arrayUnion([item.toMap()])
+    }, SetOptions(merge: true));
 
-  // Check if the current item is in the cart
-  bool isInCart(ProductModel item) {
-    return cartItems.any((cartItem) => cartItem.title == item.title);
-  }
-
-  // Get total cart value
-  double get cartTotal {
-    return cartItems.fold(0.0, (total, item) => total + item.price);
-  }
-
-  // Clear the cart
-  void clearCart() {
-    cartItems.clear();
-    notifyListeners(); // Notify the view that the cart has changed
-  }
-
-  // Get the quantity of a specific item in the cart
-  int getItemQuantity(ProductModel item) {
-    return cartItems.where((cartItem) => cartItem.title == item.title).length;
+    notifyListeners();
   }
 }

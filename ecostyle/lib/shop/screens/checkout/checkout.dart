@@ -57,10 +57,11 @@ class CheckoutScreen extends StatelessWidget {
               ? Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await firebaseService.clearCart(); // Clear the cart after placing the order
                 _showSuccessDialog(context);
               },
-              child: Text('Place Order (\$${(_calculateTotal(cartItems) + 2).toStringAsFixed(2)})'),
+              child: Text('Place Order (\$${(_calculateTotal(cartItems) + 2000).toStringAsFixed(2)})'),
             ),
           )
               : null,
@@ -86,9 +87,10 @@ class CheckoutScreen extends StatelessWidget {
       children: [
         Text('Subtotal: \$${total.toStringAsFixed(2)}'),
         const SizedBox(height: 10),
-        Text('Shipping: \$2.00'),
+        Text('Platform cost: \$2000.00'),
+
         const SizedBox(height: 10),
-        Text('Total: \$${(total + 2).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('Total: \$${(total + 2000).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
       ],
     );
   }
