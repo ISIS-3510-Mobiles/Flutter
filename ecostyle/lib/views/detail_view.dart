@@ -4,6 +4,8 @@ import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/view_model/details_view_model.dart';
 
 class DetailView extends StatelessWidget {
+  const DetailView({super.key});
+
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
@@ -102,6 +104,9 @@ class DetailView extends StatelessWidget {
                       ),
                       onPressed: () {
                         // Lógica para agregar al carrito
+
+                        final viewModel = Provider.of<DetailViewModel>(context, listen: false);
+                        viewModel.addToCart(viewModel.currentItem);
                       },
                       child: Text(
                         'Add to Cart',

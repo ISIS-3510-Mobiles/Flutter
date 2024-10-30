@@ -30,4 +30,19 @@ class ProductModel {
       category: map['category'] ?? '',
     );
   }
+
+  // Método que convierte de ProductModel a Map
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'price': price,
+      'image': image,
+      'latitude': latitude,
+      'longitude': longitude,
+      'description': description,
+      'category': category,
+    };
+  }
+
+
 }
