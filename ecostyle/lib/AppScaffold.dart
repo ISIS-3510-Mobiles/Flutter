@@ -25,7 +25,7 @@ class AppScaffold extends StatelessWidget {
           children: <Widget>[
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: Color(0xFF012826),
               ),
               child: Text(
                 'EcoStyle Menu',

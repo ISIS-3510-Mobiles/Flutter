@@ -1,165 +1,127 @@
-import 'package:ecostyle/shop/screens/cart/widgets/cart_items.dart';
+import 'package:ecostyle/firebase_service.dart';
+import 'package:ecostyle/models/product_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Checkout',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              const TCartItems(showButtons: false),
-              const SizedBox(height: 12.0),
+    final firebaseService = Provider.of<FirebaseService>(context);
 
-              /// Coupons
-              Container(
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          hintText: 'Promo code',
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('Apply'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12.0),
+    return FutureBuilder<List<ProductModel>>(
+      future: firebaseService.fetchCartItems(), // Fetch cart items
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              /// SubTotal, Shipping, and Total
-              Container(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'SubTotal',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        Text(
-                          '\$256',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Shipping and handling',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        Text(
-                          '\$2',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Total',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        Text(
-                          '\$258',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12.0),
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-              /// Payment Method
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Payment Method',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 10.0),
-                  Row(
-                    children: [
-                      Icon(Icons.credit_card, size: 30.0),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        'Credit Card',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10.0),
-                  Row(
-                    children: [
-                      Icon(Icons.money, size: 30.0),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        'Cash on Delivery',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20.0),
+        final cartItems = snapshot.data ?? [];
 
-              /// Shipping Address
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Shipping Address',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 10.0),
-                  Text(
-                    'Lorem ipsum dolor sit amet,\n'
-                        '1234 Main St, Apt 5B,\n'
-                        'Springfield, USA',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-            ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Checkout', style: Theme.of(context).textTheme.headlineSmall),
           ),
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton(
-          onPressed: () {
-            // Show the success dialog
-            _showSuccessDialog(context);
-          },
-          child: const Text('Checkout \$256.0'),
-        ),
-      ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: cartItems.isNotEmpty
+                  ? Column(
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = cartItems[index];
+                      return _buildCartItemRow(context, item);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTotalSection(cartItems),
+                  const SizedBox(height: 20),
+                  _buildPaymentMethodSection(context),
+                  const SizedBox(height: 20),
+                  _buildShippingAddressSection(context),
+                ],
+              )
+                  : const Center(child: Text('Your cart is empty.')),
+            ),
+          ),
+          bottomNavigationBar: cartItems.isNotEmpty
+              ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                _showSuccessDialog(context);
+              },
+              child: Text('Place Order (\$${(_calculateTotal(cartItems) + 2).toStringAsFixed(2)})'),
+            ),
+          )
+              : null,
+        );
+      },
     );
   }
 
-  // Success dialog placeholder
+  Widget _buildCartItemRow(BuildContext context, ProductModel item) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(item.title, style: Theme.of(context).textTheme.bodyMedium),
+        Text('\$${item.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium),
+      ],
+    );
+  }
+
+  Widget _buildTotalSection(List<ProductModel> items) {
+    double total = _calculateTotal(items);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Subtotal: \$${total.toStringAsFixed(2)}'),
+        const SizedBox(height: 10),
+        Text('Shipping: \$2.00'),
+        const SizedBox(height: 10),
+        Text('Total: \$${(total + 2).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildPaymentMethodSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Payment Method', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 10.0),
+        Row(children: [Icon(Icons.credit_card, size: 30.0), const SizedBox(width: 8.0), Text('Credit Card', style: Theme.of(context).textTheme.bodyLarge)]),
+        const SizedBox(height: 10.0),
+        Row(children: [Icon(Icons.money, size: 30.0), const SizedBox(width: 8.0), Text('Cash on Delivery', style: Theme.of(context).textTheme.bodyLarge)]),
+      ],
+    );
+  }
+
+  Widget _buildShippingAddressSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Shipping Address', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 10.0),
+        Text('Lorem ipsum dolor sit amet,\n1234 Main St, Apt 5B,\nSpringfield, USA', style: Theme.of(context).textTheme.bodyLarge),
+      ],
+    );
+  }
+
+  // Helper method to calculate total price
+  double _calculateTotal(List<ProductModel> items) {
+    return items.fold(0.0, (total, item) => total + item.price);
+  }
+
   void _showSuccessDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -170,7 +132,7 @@ class CheckoutScreen extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: const Text('OK'),
             ),

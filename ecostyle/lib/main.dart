@@ -1,7 +1,9 @@
 import 'package:ecostyle/AppScaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'firebase_service.dart'; // Import your Firebase service
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/profile_view.dart';
@@ -23,22 +25,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'EcoStyle',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => FirebaseService()), // Provide the Firebase service
+      ],
+      child: MaterialApp(
+        title: 'EcoStyle',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        initialRoute: '/login',
+        routes: {
+          '/login': (context) => LoginView(),
+          '/register': (context) => const RegisterView(),
+          '/profile': (context) => AppScaffold(child: const ProfileView(), routeName: '/profile'),
+          '/detail': (context) => AppScaffold(child: DetailView(), routeName: '/detail'),
+          '/list': (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
+          '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
+          '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
+        },
       ),
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) =>  LoginView(),
-        '/register': (context) => const RegisterView(),
-        '/profile': (context) => AppScaffold(child: const ProfileView(), routeName: '/profile'),
-        '/detail': (context) => AppScaffold(child:  DetailView(), routeName: '/detail'),
-        '/list': (context) => AppScaffold(child:  ListItemsView(), routeName: '/list'),
-        '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
-        '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
-      },
     );
   }
 }

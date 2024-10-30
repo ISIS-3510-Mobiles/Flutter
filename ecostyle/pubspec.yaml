@@ -38,6 +38,7 @@ dependencies:
   firebase_analytics: ^11.3.3
   geolocator: ^13.0.1
   provider: ^6.1.2
+  cloud_firestore: ^5.4.4
 
  
 

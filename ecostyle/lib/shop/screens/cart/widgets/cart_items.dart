@@ -1,39 +1,33 @@
+import 'package:ecostyle/models/product_model.dart';
 import 'package:flutter/material.dart';
 
-import '../cart.dart';
+// Widget for individual cart items
+class CartItemWidget extends StatelessWidget {
+  final ProductModel item;
 
-class TCartItems extends StatelessWidget {
-  const TCartItems({
-    super.key, this.showButtons = true,
-  });
-
-  final  bool showButtons;
+  const CartItemWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      shrinkWrap: true,
-      separatorBuilder: (_, __) => const SizedBox(height: 32.0,),
-      itemCount: 2,
-      itemBuilder: (_, index)=> Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
         children: [
-          const CartItem(),
-          if (showButtons) const SizedBox(width: 12.0,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween ,
-            /// +/- buttons
-            children: [
-              if(showButtons) const Row(
-                children: [
-                  SizedBox( width: 70,),
-                  TAddRemoveQuantityButton(),
-                ],
-              ),
-              const SizedBox( width: 70,),
-              const Text('\$115')
+          // Display product image
+          Image.asset(item.image, width: 60, height: 60), // Ensure imageUrl exists in ProductModel
+          const SizedBox(width: 12.0),
 
-            ],
-          )
+          // Display product title and attributes
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.title, style: Theme.of(context).textTheme.bodyLarge),
+                Text('\$${item.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          // Quantity control buttons can be added here if needed
         ],
       ),
     );
