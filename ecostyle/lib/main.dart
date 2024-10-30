@@ -1,20 +1,21 @@
-import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
-import 'package:ecostyle/shop/screens/cart/cart.dart';
+import 'package:ecostyle/AppScaffold.dart';
 import 'package:flutter/material.dart';
-import 'views/list_items_view.dart';
-import 'views/detail_view.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/profile_view.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'views/list_items_view.dart';
+import 'views/detail_view.dart';
+import 'package:ecostyle/shop/screens/cart/cart.dart';
+import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Asegura que los widgets estén inicializados
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  ); // Inicializa Firebase
-  runApp(const MyApp()); // Ejecuta la aplicación
+  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -28,15 +29,15 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/login', // Inicia en la vista de login
+      initialRoute: '/login',
       routes: {
-        '/login': (context) => LoginView(),
-        '/register': (context) => RegisterView(),
-        '/profile': (context) => ProfileView(),
-        '/detail': (context) => DetailView(),
-        '/list': (context) => ListItemsView(),
-        '/cart': (context) => CartScreen(),
-        '/sustainability': (context) => Sustainability(),
+        '/login': (context) =>  LoginView(),
+        '/register': (context) => const RegisterView(),
+        '/profile': (context) => AppScaffold(child: const ProfileView(), routeName: '/profile'),
+        '/detail': (context) => AppScaffold(child:  DetailView(), routeName: '/detail'),
+        '/list': (context) => AppScaffold(child:  ListItemsView(), routeName: '/list'),
+        '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
+        '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
       },
     );
   }
