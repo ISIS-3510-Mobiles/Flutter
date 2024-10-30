@@ -38,10 +38,13 @@ dependencies:
   firebase_auth: ^5.1.0
   firebase_analytics: ^11.3.3
   firebase_database: ^11.1.4
+  firebase_storage: ^12.3.4
+  image_picker: ^1.1.2
   geolocator: ^13.0.1
   provider: ^6.1.2
   cloud_firestore: ^5.4.4
   connectivity_plus: ^4.0.2
+  
 
  
 
