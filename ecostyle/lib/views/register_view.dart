@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -10,6 +12,8 @@ class RegisterView extends StatefulWidget {
 
 class _RegisterViewState extends State<RegisterView> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   String email = '';
   String password = '';
@@ -72,29 +76,40 @@ class _RegisterViewState extends State<RegisterView> {
 
   // Method to register the user
   Future<void> _registerWithEmailAndPassword() async {
-    if (_validateEmail(email) &&
-        _validatePassword(password) &&
-        _validateName(name) &&
-        _validateAddress(address) &&
-        _validatePhone(phone)) {
-      try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+  if (_validateEmail(email) &&
+      _validatePassword(password) &&
+      _validateName(name) &&
+      _validateAddress(address) &&
+      _validatePhone(phone)) {
+    try {
+      // Registra al usuario
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration Successful')),
-        );
+      // Guarda la información del usuario en Firestore
+      await _firestore.collection('User').doc(email).set({
+        'name': name,
+        'address': address,
+        'phone': phone,
+        'createdAt': FieldValue.serverTimestamp(), // Guarda la fecha y hora del registro
+      });
 
-        Navigator.pushNamed(context, '/profile');
-      } on FirebaseAuthException catch (e) {
-        _showErrorMessage('Error: ${e.message}');
-      }
-    } else {
-      _showErrorMessage('Please check your input for errors.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration Successful')),
+      );
+
+      // Navegar a la pantalla de perfil
+      Navigator.pushNamed(context, '/profile');
+    } on FirebaseAuthException catch (e) {
+      _showErrorMessage('Error: ${e.message}');
     }
+  } else {
+    _showErrorMessage('Please check your input for errors.');
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
