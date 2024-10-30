@@ -65,42 +65,6 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF012826), // Fondo verde oscuro
-        elevation: 0, // Eliminar sombra
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white), // Icono de menú blanco
-          onPressed: () {
-            // Lógica para abrir el menú
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.white), // Icono del carrito blanco
-            onPressed: () {
-              // Acción del carrito
-            },
-          ),
-        ],
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Container(
-            height: 48, 
-            decoration: BoxDecoration(
-              color: Colors.white, // Fondo blanco de la barra de búsqueda
-              borderRadius: BorderRadius.circular(8), // Bordes redondeados
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search in EcoStyle',
-                hintStyle: TextStyle(color: Colors.grey), // Texto gris en la barra de búsqueda
-                border: InputBorder.none, // Sin bordes
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-              ),
-            ),
-          ),
-        ),
-      ),
       backgroundColor: Colors.white, // Fondo blanco
       body: Center(
         child: FutureBuilder<Map<String, String>>(
@@ -161,8 +125,11 @@ class _ProfileViewState extends State<ProfileView> {
 
                     // Botón para actualizar datos
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/register'); // Navegar a la vista de registro
+                      onPressed: () async {
+                        // Navega a la vista de actualizar datos y espera su resultado
+                        await Navigator.pushNamed(context, '/update');
+                        // Al volver, vuelve a cargar los datos del perfil
+                        setState(() {});
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Color verde lima

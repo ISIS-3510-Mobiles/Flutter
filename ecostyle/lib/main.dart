@@ -9,6 +9,7 @@ import 'views/register_view.dart';
 import 'views/profile_view.dart';
 import 'views/list_items_view.dart';
 import 'views/detail_view.dart';
+import 'views/update_info_view.dart';
 import 'package:ecostyle/shop/screens/cart/cart.dart';
 import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
 
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginView(),
           '/register': (context) => const RegisterView(),
           '/profile': (context) => AppScaffold(child: const ProfileView(), routeName: '/profile'),
+          '/update': (context) => AppScaffold(child: const UpdateInfoView(), routeName: '/update'),
           '/detail': (context) => AppScaffold(child: DetailView(), routeName: '/detail'),
           '/list': (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
           '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
