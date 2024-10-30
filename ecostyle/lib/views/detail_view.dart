@@ -104,6 +104,7 @@ class DetailView extends StatelessWidget {
                       ),
                       onPressed: () {
                         // Lógica para agregar al carrito
+
                         final viewModel = Provider.of<DetailViewModel>(context, listen: false);
                         viewModel.addToCart(viewModel.currentItem);
                       },
