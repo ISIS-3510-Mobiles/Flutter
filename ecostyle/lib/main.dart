@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'firebase_service.dart'; // Import your Firebase service
+import 'firebase_service.dart'; 
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/profile_view.dart';
@@ -14,9 +14,15 @@ import 'package:ecostyle/personalization/screens/sustainability/sustainability.d
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print("Firebase initialization error: $e");
+  }
+
   runApp(const MyApp());
 }
 
