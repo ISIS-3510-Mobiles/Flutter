@@ -39,12 +39,23 @@ class FirebaseService {
 
   // Remove an item from the cart
   Future<void> removeItemFromCart(String itemId) async {
-    try {
-      await _firestore.collection('cart').doc(itemId).delete();
-    } catch (e) {
-      throw e; // Handle error as needed
-    }
+    String userId = "temp"; // Retrieve this from your authentication method
+    DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
+
+    await _firestore.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(cartRef);
+
+      if (snapshot.exists) {
+        List<dynamic> items = (snapshot.data() as Map<String, dynamic>)['items'] ?? [];
+        // Filter out the item with the given itemId
+        items = items.where((item) => item['id'] != itemId).toList();
+
+        // Update the cart with the filtered items list
+        transaction.update(cartRef, {'items': items});
+      }
+    });
   }
+
 
   Future<void> clearCart() async {
     String userId = "temp"; // Retrieve this from your authentication method
