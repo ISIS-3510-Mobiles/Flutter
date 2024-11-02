@@ -54,8 +54,12 @@ class FirebaseService {
         transaction.update(cartRef, {'items': items});
       }
     });
+
   }
 
+  Future<void> addProduct(ProductModel product) async {
+    await _firestore.collection('products_temp').add(product.toMap());
+  }
 
   Future<void> clearCart() async {
     String userId = "temp"; // Retrieve this from your authentication method

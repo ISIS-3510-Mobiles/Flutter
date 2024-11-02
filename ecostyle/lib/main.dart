@@ -1,4 +1,5 @@
 import 'package:ecostyle/AppScaffold.dart';
+import 'package:ecostyle/shop/screens/addItem/addItem.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
           '/list': (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
           '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
           '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
+          '/addItem': (context) => AppScaffold(child:  AddProductScreen(), routeName: '/addItem'),
         },
       ),
     );

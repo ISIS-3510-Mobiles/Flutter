@@ -58,6 +58,13 @@ class AppScaffold extends StatelessWidget {
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.category),
+                    title: const Text('Add Item'),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/addItem');
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.eco),
                     title: const Text('Sustainability'),
                     onTap: () {
