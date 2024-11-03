@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ecostyle/firebase_service.dart';
@@ -19,6 +21,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final double _longitude = -74.0703;
   String _description = '';
   String _category = '';
+  bool _enviromentalImpact = false;
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -141,6 +144,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       longitude: _longitude,
                       description: _description,
                       category: _category,
+                      environmentalImpact: _enviromentalImpact,
                     );
                     await firebaseService.addProduct(newProduct);
                     Navigator.pop(context);

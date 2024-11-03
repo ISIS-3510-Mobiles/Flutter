@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 class ProductModel {
   String id;
   String title;
@@ -7,6 +9,7 @@ class ProductModel {
   double longitude;
   String description;
   String category;
+  bool environmentalImpact;
 
   // Constructor
   ProductModel({
@@ -18,6 +21,7 @@ class ProductModel {
     required this.longitude,
     required this.description,
     required this.category,
+    required this.environmentalImpact,
   });
 
   // Método que convierte de Map a ProductModel
@@ -31,6 +35,7 @@ class ProductModel {
       longitude: map['longitude']?.toDouble() ?? 0.0,
       description: map['description'] ?? '',
       category: map['category'] ?? '',
+      environmentalImpact: map['environmentalImpact'] ?? false,
     );
   }
 
@@ -45,6 +50,7 @@ class ProductModel {
       'longitude': longitude,
       'description': description,
       'category': category,
+      'environmentalImpact': environmentalImpact,
     };
   }
 
