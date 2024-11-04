@@ -1,10 +1,19 @@
+import 'package:ecostyle/AppScaffold.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
+import 'package:ecostyle/views/list_items_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
+
+  @override
+  _CheckoutScreenState createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  String? _selectedPaymentMethod; // New state variable for payment method
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +67,14 @@ class CheckoutScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () async {
+                if (_selectedPaymentMethod == null) {
+                  // Optionally, you can show a message if no payment method is selected
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please select a payment method')),
+                  );
+                  return;
+                }
+
                 await firebaseService.clearCart(); // Clear the cart after placing the order
                 _showSuccessDialog(context);
               },
@@ -88,7 +105,6 @@ class CheckoutScreen extends StatelessWidget {
         Text('Subtotal: \$${total.toStringAsFixed(2)}'),
         const SizedBox(height: 10),
         Text('Platform cost: \$2000.00'),
-
         const SizedBox(height: 10),
         Text('Total: \$${(total + 2000).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
       ],
@@ -101,9 +117,30 @@ class CheckoutScreen extends StatelessWidget {
       children: [
         Text('Payment Method', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10.0),
-        Row(children: [Icon(Icons.credit_card, size: 30.0), const SizedBox(width: 8.0), Text('Credit Card', style: Theme.of(context).textTheme.bodyLarge)]),
-        const SizedBox(height: 10.0),
-        Row(children: [Icon(Icons.money, size: 30.0), const SizedBox(width: 8.0), Text('Cash on Delivery', style: Theme.of(context).textTheme.bodyLarge)]),
+        ListTile(
+          title: const Text('Credit Card'),
+          leading: Radio<String>(
+            value: 'credit_card',
+            groupValue: _selectedPaymentMethod,
+            onChanged: (value) {
+              setState(() {
+                _selectedPaymentMethod = value;
+              });
+            },
+          ),
+        ),
+        ListTile(
+          title: const Text('Cash on Delivery'),
+          leading: Radio<String>(
+            value: 'cash_on_delivery',
+            groupValue: _selectedPaymentMethod,
+            onChanged: (value) {
+              setState(() {
+                _selectedPaymentMethod = value;
+              });
+            },
+          ),
+        ),
       ],
     );
   }
@@ -134,7 +171,10 @@ class CheckoutScreen extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => AppScaffold(child: ListItemsView(), routeName: '/list')), // Navigate to your ProductListView
+                );
               },
               child: const Text('OK'),
             ),

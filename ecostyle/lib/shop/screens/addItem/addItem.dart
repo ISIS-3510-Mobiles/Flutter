@@ -1,11 +1,10 @@
-import 'dart:ffi';
-
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class AddProductScreen extends StatefulWidget {
   @override
@@ -32,6 +31,33 @@ class _AddProductScreenState extends State<AddProductScreen> {
         _imagePath = image.path; // Store the image path
       });
     }
+  }
+
+  Future<void> _checkConnectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      _showNoConnectionDialog();
+    }
+  }
+
+  void _showNoConnectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text('Please check your internet connection and try again.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -134,6 +160,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               // Submit button
               ElevatedButton(
                 onPressed: () async {
+                  await _checkConnectivity(); // Check connectivity before submitting
                   if (_formKey.currentState!.validate()) {
                     final newProduct = ProductModel(
                       id: DateTime.now().toString(),

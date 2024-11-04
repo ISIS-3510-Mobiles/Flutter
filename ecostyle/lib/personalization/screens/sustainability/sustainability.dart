@@ -52,7 +52,7 @@ class _SustainabilityState extends State<Sustainability> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sustainability Impact'),
+        title: const Text(''),
         backgroundColor: const Color(0xFF012826),
       ),
       body: Padding(
