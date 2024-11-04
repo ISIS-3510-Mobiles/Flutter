@@ -1,17 +1,41 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class LoginView extends StatelessWidget {
+class LoginView extends StatefulWidget {
   LoginView({super.key});
 
+  @override
+  _LoginViewState createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  final LocalAuthentication localAuth = LocalAuthentication();
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  final TextEditingController _emailController = TextEditingController();
+  String? password; // Optional password variable
+  bool isBiometricLogin = false; // Flag to track login method
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmail(); // Load stored email when the view initializes
+  }
+
+  Future<void> _loadEmail() async {
+    final cachedEmail = await secureStorage.read(key: 'userEmail');
+    if (cachedEmail != null) {
+      _emailController.text = cachedEmail; // Set the retrieved email value
+    }
+  }
 
   Future<void> _loginWithEmailAndPassword(BuildContext context, String email, String password) async {
-    // Check if email is empty or invalid
+    // Validate email and password
     if (email.isEmpty) {
       _showError(context, 'Email cannot be empty');
       return;
@@ -20,11 +44,10 @@ class LoginView extends StatelessWidget {
       return;
     }
 
-    // Check if password is empty or too short
-    if (password.isEmpty) {
+    if (password == null && !isBiometricLogin) {
       _showError(context, 'Password cannot be empty');
       return;
-    } else if (!_isValidPassword(password)) {
+    } else if (password != null && !_isValidPassword(password!) && !isBiometricLogin) {
       _showError(context, 'Password must be at least 8 characters long and contain no spaces');
       return;
     }
@@ -33,12 +56,15 @@ class LoginView extends StatelessWidget {
       // Attempt to sign in with email and password
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
-        password: password.trim(),
+        password: password?.trim() ?? '', // Handle null safely
       );
 
-      // Cache user email
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userEmail', email);
+      // Store user email and password securely
+      await secureStorage.write(key: 'userEmail', value: email);
+      if (password != null) {
+        await secureStorage.write(key: 'userPassword', value: password!); // Save the password securely
+      }
+      await secureStorage.write(key: 'hasLoggedIn', value: 'true'); // Set the logged in flag
 
       // Log successful login event
       await analytics.logEvent(
@@ -54,9 +80,16 @@ class LoginView extends StatelessWidget {
   }
 
   Future<void> _authenticateWithBiometrics(BuildContext context) async {
-    final LocalAuthentication auth = LocalAuthentication();
     try {
-      bool authenticated = await auth.authenticate(
+      // Check if biometrics are available
+      bool canCheckBiometrics = await localAuth.canCheckBiometrics;
+      if (!canCheckBiometrics) {
+        _showError(context, 'Biometric authentication is not available on this device.');
+        return;
+      }
+
+      // Prompt for biometric authentication
+      bool authenticated = await localAuth.authenticate(
         localizedReason: 'Please authenticate to log in',
         options: const AuthenticationOptions(
           useErrorDialogs: true,
@@ -65,15 +98,16 @@ class LoginView extends StatelessWidget {
       );
 
       if (authenticated) {
-        final prefs = await SharedPreferences.getInstance();
-        final cachedEmail = prefs.getString('userEmail');
+        final cachedEmail = await secureStorage.read(key: 'userEmail');
+        final cachedPassword = await secureStorage.read(key: 'userPassword'); // Retrieve the password
 
-        if (cachedEmail != null) {
+        if (cachedEmail != null && cachedPassword != null) {
           await analytics.logEvent(
             name: 'user_login_biometrics',
             parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
           );
-          Navigator.pushNamed(context, '/list');
+          // Automatically log in the user with cached email and password
+          _loginWithEmailAndPassword(context, cachedEmail, cachedPassword); // Use the cached password
         } else {
           _showError(context, 'No cached data found. Please log in with email and password first.');
         }
@@ -100,9 +134,6 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String email = '';
-    String password = '';
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -128,7 +159,7 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    onChanged: (value) => email = value,
+                    controller: _emailController, // Set the controller for the email field
                     decoration: InputDecoration(
                       hintText: 'Email',
                       filled: true,
@@ -141,7 +172,7 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    onChanged: (value) => password = value,
+                    onChanged: (value) => password = value.isNotEmpty ? value : null, // Set password value
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Password',
@@ -163,7 +194,15 @@ class LoginView extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           onPressed: () {
-                            _loginWithEmailAndPassword(context, email, password);
+                            isBiometricLogin = false; // Set the flag for email/password login
+                            // Check if email or password is empty before logging in
+                            if (_emailController.text.isEmpty) {
+                              _showError(context, 'Email cannot be empty');
+                            } else if (password == null) {
+                              _showError(context, 'Password cannot be empty');
+                            } else {
+                              _loginWithEmailAndPassword(context, _emailController.text, password!);
+                            }
                           },
                           child: const Text(
                             'Login',
@@ -190,24 +229,28 @@ class LoginView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007451),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                  if (Platform.isIOS) // Check if the platform is iOS
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF007451),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: () {
+                        isBiometricLogin = true; // Set the flag for biometric login
+                        _authenticateWithBiometrics(context);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.face, color: Colors.white),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'FaceID',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ],
+                      ),
                     ),
-                    onPressed: () => _authenticateWithBiometrics(context),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.face, color: Colors.white),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'FaceID',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
