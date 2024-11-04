@@ -39,7 +39,7 @@ class _ListItemsViewState extends State<ListItemsView> {
         backgroundColor: Color(0xFF012826),
         title: Row(
           children: [
-            IconButton(icon: Icon(Icons.menu, color: Colors.white), onPressed: () {}),
+
             Expanded(
               child: TextField(
                 decoration: InputDecoration(

@@ -1,9 +1,12 @@
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ecostyle/models/product_model.dart';
 
 class DetailViewModel extends ChangeNotifier {
   late ProductModel currentItem;
   late List<ProductModel> recommendedItems;
+
 
   // Inicializar los datos del producto y las recomendaciones
   void init(ProductModel item, List<ProductModel> allItems) {
@@ -33,6 +36,7 @@ class DetailViewModel extends ChangeNotifier {
             }
           }
           if (!selected) {
+
             similarItems.add(item);
           }
         }
@@ -75,5 +79,16 @@ class DetailViewModel extends ChangeNotifier {
       return listItems.take(3).toList(); // Retornamos los 3 más cercanos por precio
     }
   }
+ Future<void> addToCart(ProductModel item) async {
+    String userId = "temp"; // Retrieve this from your authentication method
+    DocumentReference cartRef = FirebaseFirestore.instance.collection('carts_users')
+        .doc(userId);
 
+    // Add item to the cart
+    await cartRef.set({
+      'items': FieldValue.arrayUnion([item.toMap()])
+    }, SetOptions(merge: true));
+
+    notifyListeners();
+  }
 }
