@@ -109,6 +109,9 @@ class _ProfileViewState extends State<ProfileView> {
             _isUploading = false; // Stop uploading status
           });
 
+          // Track profile picture change
+          await _trackProfilePictureChange();
+
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Image updated correctly!')),
@@ -123,6 +126,22 @@ class _ProfileViewState extends State<ProfileView> {
           );
         }
       }
+    }
+  }
+
+  Future<void> _trackProfilePictureChange() async {
+    User? user = _auth.currentUser;
+
+    if (user != null) {
+      DocumentReference userDocRef = _firestore.collection('User').doc(user.email);
+
+      // Increment the profile picture change count
+      await userDocRef.update({
+        'profilePictureChangeCount': FieldValue.increment(1), // Increment the count
+      }).catchError((error) {
+        // Handle any errors here
+        print('Error updating profile picture change count: $error');
+      });
     }
   }
 
@@ -151,7 +170,7 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // White background
@@ -192,19 +211,19 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     
                     // "Change Picture" button
-ElevatedButton(
-  onPressed: _changeProfileImage,
-  style: ButtonStyle(
-    backgroundColor: MaterialStateProperty.all(Colors.white), // White background
-    foregroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Lime green text
-    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0)), // Smaller button
-    elevation: MaterialStateProperty.all(0), // Remove elevation
-  ),
-  child: const Text(
-    'Change Picture',
-    style: TextStyle(fontSize: 16.0), // Smaller font size
-  ),
-),
+                    ElevatedButton(
+                    onPressed: _changeProfileImage,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.white), // White background
+                      foregroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Lime green text
+                      padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0)), // Smaller button
+                      elevation: MaterialStateProperty.all(0), // Remove elevation
+                    ),
+                    child: const Text(
+                      'Change Picture',
+                      style: TextStyle(fontSize: 16.0), // Smaller font size
+                    ),
+                  ),
 
                     const SizedBox(height: 19.2), 
                     Text(

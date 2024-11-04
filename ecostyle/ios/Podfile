@@ -31,11 +31,18 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Add Firebase pods
+  pod 'Firebase/Analytics'
+  pod 'Firebase/Auth'
+  pod 'Firebase/RemoteConfig'
+  # Add other Firebase dependencies as needed
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
   end
 end
+
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
