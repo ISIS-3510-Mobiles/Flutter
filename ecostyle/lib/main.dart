@@ -1,7 +1,9 @@
 import 'package:ecostyle/AppScaffold.dart';
+import 'package:ecostyle/shop/controlers/ProductModelAdapter.dart';
 import 'package:ecostyle/shop/screens/addItem/addItem.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hive_ce_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'firebase_service.dart'; 
@@ -21,6 +23,9 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await Hive.initFlutter();
+
+    Hive.registerAdapter(ProductModelAdapter());
   } catch (e) {
     print("Firebase initialization error: $e");
   }

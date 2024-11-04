@@ -11,7 +11,7 @@ class Sustainability extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sustainability Impact'),
-        backgroundColor: Colors.black,
+        backgroundColor: Color(0xFF012826),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -38,7 +38,7 @@ class Sustainability extends StatelessWidget {
                   child: Icon(
                     Icons.recycling,
                     size: 100,
-                    color: Colors.yellow,
+                    color: Color(0xFF012826),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -57,9 +57,9 @@ class Sustainability extends StatelessWidget {
                       return ListTile(
                         title: Text('Product ID: ${item.productId}'),
                         subtitle: Text(
-                          'Carbon Footprint: ${item.carbonFootprint}\n'
-                              'Water Usage: ${item.waterUsage}\n'
-                              'Waste Diverted: ${item.wasteDiverted}',
+                          'Carbon offset: ${item.carbonFootprint} ppm\n'
+                              'Water Usage: ${item.waterUsage} L\n'
+                              'Waste Diverted: ${item.wasteDiverted} kg',
                         ),
                       );
                     },
@@ -73,6 +73,7 @@ class Sustainability extends StatelessWidget {
                     _launchURL('https://www.youtube.com/watch?v=F6R_WTDdx7I');
                   },
                   child: Text(
+
                     'Learn more about your impact',
                     style: TextStyle(
                       fontSize: 18,
@@ -89,6 +90,7 @@ class Sustainability extends StatelessWidget {
       ),
     );
   }
+
 
   void _launchURL(String url) async {
     // Launch URL using url_launcher package

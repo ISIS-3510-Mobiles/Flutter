@@ -1,17 +1,36 @@
-import 'dart:ffi';
 
-class ProductModel {
+import 'package:hive_ce_flutter/adapters.dart';
+
+
+@HiveType(typeId: 0)
+class ProductModel extends HiveObject {
+  @HiveField(0)
   String id;
+
+  @HiveField(1)
   String title;
+
+  @HiveField(2)
   int price;
+
+  @HiveField(3)
   String image;
+
+  @HiveField(4)
   double latitude;
+
+  @HiveField(5)
   double longitude;
+
+  @HiveField(6)
   String description;
+
+  @HiveField(7)
   String category;
+
+  @HiveField(8)
   bool environmentalImpact;
 
-  // Constructor
   ProductModel({
     required this.id,
     required this.title,
@@ -24,7 +43,6 @@ class ProductModel {
     required this.environmentalImpact,
   });
 
-  // Método que convierte de Map a ProductModel
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
       id: map['id'] ?? '',
@@ -39,7 +57,6 @@ class ProductModel {
     );
   }
 
-  // Método que convierte de ProductModel a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -53,6 +70,4 @@ class ProductModel {
       'environmentalImpact': environmentalImpact,
     };
   }
-
-
 }

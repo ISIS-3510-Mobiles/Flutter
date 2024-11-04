@@ -1,5 +1,7 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
+import 'package:ecostyle/shop/controlers/LocalCartService.dart';
 import 'package:ecostyle/shop/screens/cart/widgets/cart_items.dart';
 import 'package:ecostyle/shop/screens/checkout/checkout.dart';
 import 'package:flutter/material.dart';
@@ -20,13 +22,30 @@ class _CartScreenState extends State<CartScreen> {
     _cartItemsFuture = _fetchCartItems();
   }
 
-  Future<List<ProductModel>> _fetchCartItems() {
-    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-    return firebaseService.fetchCartItems();
+  Future<List<ProductModel>> _fetchCartItems() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final localCartService = LocalCartService();
+
+    if (connectivityResult == ConnectivityResult.none) {
+      // Return local items when offline
+      return await localCartService.getCartItems();
+    } else {
+      final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+      final onlineItems = await firebaseService.fetchCartItems();
+
+      // Sync local storage with online data
+      await localCartService.clearCart();
+      for (var item in onlineItems) {
+        await localCartService.addItemToCart(item);
+      }
+      return onlineItems;
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
+
     return FutureBuilder<List<ProductModel>>(
       future: _cartItemsFuture,
       builder: (context, snapshot) {
@@ -88,12 +107,25 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _removeFromCart(BuildContext context, String itemId) async {
     final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-    await firebaseService.removeItemFromCart(itemId);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Item removed from cart')));
+    final localCartService = LocalCartService();
 
-    // Refresh the cart items after removal
+    // Remove item from Firebase if online
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      await firebaseService.removeItemFromCart(itemId);
+    }
+
+    // Remove item from local storage
+    await localCartService.removeItemFromCart(itemId);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Item removed from cart')),
+    );
+
+    // Refresh cart items
     setState(() {
       _cartItemsFuture = _fetchCartItems();
     });
   }
+
 }
