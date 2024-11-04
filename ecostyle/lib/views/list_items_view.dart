@@ -9,6 +9,7 @@ class ListItemsView extends StatefulWidget {
 }
 
 class _ListItemsViewState extends State<ListItemsView> {
+  //Small comment
   final List<Map<String, dynamic>> original_items = [
     {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket"},
     {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore.", "category": "Jacket"},
