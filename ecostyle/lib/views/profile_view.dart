@@ -192,18 +192,19 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     
                     // "Change Picture" button
-                    ElevatedButton(
-                      onPressed: _changeProfileImage,
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.white), // White background
-                        foregroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Lime green text
-                        padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0)), // Smaller button
-                      ),
-                      child: const Text(
-                        'Change Picture',
-                        style: TextStyle(fontSize: 16.0), // Smaller font size
-                      ),
-                    ),
+ElevatedButton(
+  onPressed: _changeProfileImage,
+  style: ButtonStyle(
+    backgroundColor: MaterialStateProperty.all(Colors.white), // White background
+    foregroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Lime green text
+    padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0)), // Smaller button
+    elevation: MaterialStateProperty.all(0), // Remove elevation
+  ),
+  child: const Text(
+    'Change Picture',
+    style: TextStyle(fontSize: 16.0), // Smaller font size
+  ),
+),
 
                     const SizedBox(height: 19.2), 
                     Text(
@@ -248,14 +249,15 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                       child: const Text(
                         'Update Info',
-                        style: TextStyle(fontSize: 16.0, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 21.6, // Font size for the button
+                          color: Colors.white, // White text color
+                        ),
                       ),
                     ),
                     const SizedBox(height: 9.6), 
-
-                    // Button to change password
                     ElevatedButton(
-                      onPressed: () => authenticate(context),
+                      onPressed: () => authenticate(context), // Call the authenticate function
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(const Color(0xFF007451)), // Lime green color
                         padding: MaterialStateProperty.all(
@@ -264,25 +266,17 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                       child: const Text(
                         'Change Password',
-                        style: TextStyle(fontSize: 16.0, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 9.6), 
-
-                    // Show uploading message if in uploading state
-                    if (_isUploading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 40), // Adjust space for visibility
-                        child: Text(
-                          'Uploading your image...',
-                          style: TextStyle(fontSize: 16.0, color: Colors.black), // Display message
+                        style: TextStyle(
+                          fontSize: 21.6, // Font size for the button
+                          color: Colors.white, // White text color
                         ),
                       ),
+                    ),
                   ],
                 ),
               );
             } else {
-              return const Center(child: Text('No user data found'));
+              return const Center(child: Text('No user data available')); // Message for no data
             }
           },
         ),

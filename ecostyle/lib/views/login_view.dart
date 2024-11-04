@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginView extends StatelessWidget {
   LoginView({super.key});
@@ -35,6 +36,10 @@ class LoginView extends StatelessWidget {
         password: password.trim(),
       );
 
+      // Cache user email
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userEmail', email);
+
       // Log successful login event
       await analytics.logEvent(
         name: 'user_login',
@@ -60,11 +65,18 @@ class LoginView extends StatelessWidget {
       );
 
       if (authenticated) {
-        await analytics.logEvent(
-          name: 'user_login_biometrics',
-          parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
-        );
-        Navigator.pushNamed(context, '/list');
+        final prefs = await SharedPreferences.getInstance();
+        final cachedEmail = prefs.getString('userEmail');
+
+        if (cachedEmail != null) {
+          await analytics.logEvent(
+            name: 'user_login_biometrics',
+            parameters: {'timestamp': DateTime.now().millisecondsSinceEpoch},
+          );
+          Navigator.pushNamed(context, '/list');
+        } else {
+          _showError(context, 'No cached data found. Please log in with email and password first.');
+        }
       } else {
         _showError(context, 'Authentication failed. Please try again.');
       }
