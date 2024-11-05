@@ -1,18 +1,53 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
+import 'package:ecostyle/shop/controlers/LocalCartService.dart';
 import 'package:ecostyle/shop/screens/cart/widgets/cart_items.dart';
 import 'package:ecostyle/shop/screens/checkout/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
+  _CartScreenState createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  late Future<List<ProductModel>> _cartItemsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _cartItemsFuture = _fetchCartItems();
+  }
+
+  Future<List<ProductModel>> _fetchCartItems() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final localCartService = LocalCartService();
+
+    if (connectivityResult == ConnectivityResult.none) {
+      // Return local items when offline
+      return await localCartService.getCartItems();
+    } else {
+      final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+      final onlineItems = await firebaseService.fetchCartItems();
+
+      // Sync local storage with online data
+      await localCartService.clearCart();
+      for (var item in onlineItems) {
+        await localCartService.addItemToCart(item);
+      }
+      return onlineItems;
+    }
+  }
+
+
+  @override
   Widget build(BuildContext context) {
-    final firebaseService = Provider.of<FirebaseService>(context);
 
     return FutureBuilder<List<ProductModel>>(
-      future: firebaseService.fetchCartItems(), // Fetch cart items
+      future: _cartItemsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -35,7 +70,12 @@ class CartScreen extends StatelessWidget {
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
                 final item = cartItems[index];
-                return CartItemWidget(item: item);
+                return CartItemWidget(
+                  item: item,
+                  onRemove: () async {
+                    await _removeFromCart(context, item.id);
+                  },
+                );
               },
             )
                 : const Center(child: Text('Your cart is empty.')),
@@ -45,7 +85,6 @@ class CartScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () {
-                // Proceed to checkout
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -62,16 +101,31 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  // Helper method to calculate total price
   double _calculateTotal(List<ProductModel> items) {
     return items.fold(0, (total, item) => total + item.price);
   }
 
-  // Method to remove item from the cart
   Future<void> _removeFromCart(BuildContext context, String itemId) async {
     final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-    await firebaseService.removeItemFromCart(itemId); // Call your Firebase service to remove the item
-    // Optionally, you can show a snackbar or update the UI
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Item removed from cart')));
+    final localCartService = LocalCartService();
+
+    // Remove item from Firebase if online
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      await firebaseService.removeItemFromCart(itemId);
+    }
+
+    // Remove item from local storage
+    await localCartService.removeItemFromCart(itemId);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Item removed from cart')),
+    );
+
+    // Refresh cart items
+    setState(() {
+      _cartItemsFuture = _fetchCartItems();
+    });
   }
+
 }

@@ -1,11 +1,15 @@
 import 'package:ecostyle/models/product_model.dart';
 import 'package:flutter/material.dart';
 
-// Widget for individual cart items
 class CartItemWidget extends StatelessWidget {
   final ProductModel item;
+  final VoidCallback onRemove; // Callback for the remove action
 
-  const CartItemWidget({super.key, required this.item});
+  const CartItemWidget({
+    super.key,
+    required this.item,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +18,10 @@ class CartItemWidget extends StatelessWidget {
       child: Row(
         children: [
           // Display product image
-          Image.asset(item.image, width: 60, height: 60), // Ensure imageUrl exists in ProductModel
+          Image.asset(item.image, width: 60, height: 60),
           const SizedBox(width: 12.0),
 
-          // Display product title and attributes
+          // Display product title and price
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -27,7 +31,12 @@ class CartItemWidget extends StatelessWidget {
               ],
             ),
           ),
-          // Quantity control buttons can be added here if needed
+
+          // Remove button
+          IconButton(
+            icon: Icon(Icons.delete, color: Colors.red),
+            onPressed: onRemove, // Calls the onRemove callback
+          ),
         ],
       ),
     );

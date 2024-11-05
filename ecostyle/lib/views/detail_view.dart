@@ -1,10 +1,21 @@
+import 'package:ecostyle/firebase_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; 
+import 'package:provider/provider.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/view_model/details_view_model.dart';
 
-class DetailView extends StatelessWidget {
+class DetailView extends StatefulWidget {
   const DetailView({super.key});
+
+  @override
+  _DetailViewState createState() => _DetailViewState();
+}
+
+class _DetailViewState extends State<DetailView> {
+  final FirebaseService _firebaseService = FirebaseService();
+  String? selectedBrand;
+  String? selectedMaterial;
+  double? itemWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +24,7 @@ class DetailView extends StatelessWidget {
     List<Map<String, dynamic>> data = args['allItems'];
     List<ProductModel> allItems = [];
     for (Map<String, dynamic> item in data) {
-      ProductModel itemChanged = ProductModel.fromMap(item); 
+      ProductModel itemChanged = ProductModel.fromMap(item);
       allItems.add(itemChanged);
     }
 
@@ -103,13 +114,91 @@ class DetailView extends StatelessWidget {
                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
                       ),
                       onPressed: () {
-                        // Lógica para agregar al carrito
-
                         final viewModel = Provider.of<DetailViewModel>(context, listen: false);
                         viewModel.addToCart(viewModel.currentItem);
                       },
                       child: Text(
                         'Add to Cart',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Add Impact:',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    SizedBox(height: 10),
+                    DropdownButton<String>(
+                      hint: Text('Select Brand'),
+                      value: selectedBrand,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedBrand = newValue;
+                        });
+                      },
+                      items: <String>['Fast Fashion', 'Local', 'Handmade', 'Donated']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 10),
+                    DropdownButton<String>(
+                      hint: Text('Select Material'),
+                      value: selectedMaterial,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedMaterial = newValue;
+                        });
+                      },
+                      items: <String>['Cotton', 'Polyester', 'Wool', 'Leather'] // Example materials
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Weight (kg)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        itemWeight = double.tryParse(value); // Convert the string to a double
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF007451),
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 80),
+                      ),
+                      onPressed: () async {
+                        if (selectedBrand != null && selectedMaterial != null && itemWeight != null) {
+                          await _firebaseService.addImpact({
+                            'item': viewModel.currentItem.title,
+                            'brand': selectedBrand,
+                            'material': selectedMaterial,
+                            'weight': itemWeight,
+                          });
+                          // Optionally, show a success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Impact added successfully!')),
+                          );
+                        } else {
+                          // Optionally, show an error message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Please fill in all fields!')),
+                          );
+                        }
+                      },
+                      child: Text(
+                        'Add Impact',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
