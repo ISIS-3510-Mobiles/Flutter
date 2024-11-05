@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart'; // Usar esta librería para funciones de listas
 import 'package:geolocator/geolocator.dart'; // Para obtener la ubicación del usuario
+import 'package:cloud_firestore/cloud_firestore.dart'; // Para Firestore
+import 'dart:async'; // Importa la librería Timer para Eventual Connectivity
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:isolate'; // Usa Isolate para multi-threading
 import 'dart:math'; // Para calcular la distancia entre dos puntos
 
 class ListItemsView extends StatefulWidget {
@@ -9,38 +13,189 @@ class ListItemsView extends StatefulWidget {
 }
 
 class _ListItemsViewState extends State<ListItemsView> {
-  //Small comment
-  final List<Map<String, dynamic>> original_items = [
-    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket"},
-    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore.", "category": "Jacket"},
-    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore.", "category": "Hoodie"},
-    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color.", "category": "Jacket"},
-    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps.", "category": "Cap"},
-    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often.", "category": "Cap"},
-    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now.", "category": "Cap"}
-];
-
-  List<Map<String, dynamic>> items = [
-    {"title": "Sporty Jacket", "price": 120000, "image": "assets/images/sporty_jacket.png", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket"},
-    {"title": "Yellow Beauty Jacket", "price": 150000, "image": "assets/images/yellow_beauty_jacket.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Yellow Beauty Jacket size M. I love the color, but it's not my style anymore.", "category": "Jacket"},
-    {"title": "Uniandes Hoodie", "price": 80000, "image": "assets/images/uniandes_sweater.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Uniandes Hoodie size XL. I changed to Nacho's university, so I don't use it anymore.", "category": "Hoodie"},
-    {"title": "Simple Uniandes Jacket", "price": 130000, "image": "assets/images/uniandes_jacket.png", "latitude": 4.6000, "longitude": -74.0721, "description": "Simple Uniandes Jacket size L. I received it as a gift, but it's not my color.", "category": "Jacket"},
-    {"title": "Uniandes Red Cap", "price": 50000, "image": "assets/images/uniandes_cap.png", "latitude": 4.6097, "longitude": -74.0817, "description": "Uniandes Red Cap. I bought it during my first year, but I rarely wear caps.", "category": "Cap"},
-    {"title": "I Love 4:20 Cap", "price": 60000, "image": "assets/images/420_cap.png", "latitude": 4.6351, "longitude": -74.0703, "description": "I Love 4:20 Cap. It's a fun cap, but I don't wear it often.", "category": "Cap"},
-    {"title": "Grey Sporty Cap", "price": 130000, "image": "assets/images/grey_sporty_cap.png", "latitude": 4.6370, "longitude": -74.0824, "description": "Grey Sporty Cap. I bought it for outdoor activities, but I prefer other styles now.", "category": "Cap"}
-];
-
+  List<Map<String, dynamic>> original_items = [];
+  List<Map<String, dynamic>> items = [];
   List<Map<String, dynamic>> recentlyViewedItems = [];
   Position? userPosition;
-  
+  bool isLoading = true;
+  Timer? connectionTimer;
+  bool loaded = false;
+  Map<String,dynamic> itemRecommended = {"title": "Sporty Jacket", "price": 120000, "image": "https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/images%2Fsporty_jacket.png?alt=media&token=3c413908-747d-4f9b-8598-c35f2f40cbe7", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket", "carbonFootprint":2.25, "wasteDiverted":1.5,"waterUsage":3000, 'sustainabilityPercentage':75};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItemsFromFirebase();
+    _startConnectivityCheck(); // Inicia el chequeo de conectividad
+  }
+
+  @override
+  void dispose() {
+    connectionTimer?.cancel();
+    super.dispose();
+  }
+
+  // Método que inicializa el chequeo de conectividad eventual
+  void _startConnectivityCheck() {
+    connectionTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult != ConnectivityResult.none) {
+        if (!loaded) {
+          _loadItemsFromFirebase(); // Intenta recargar los datos si se restablece la conexión
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Internet connection restored. Loading products...',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _loadItemsFromFirebase() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      // No hay conexión a internet
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No internet connection. Products will load once the connection is restored.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return; // Sale de la función si no hay conexión
+    }
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance.collection('items').get();
+      List<Map<String, dynamic>> loadedItems = querySnapshot.docs.map((doc) {
+        return {
+          "title": doc['title'],
+          "price": doc['price'],
+          "image": doc['image'],
+          "latitude": doc['latitude'],
+          "longitude": doc['longitude'],
+          "description": doc['description'],
+          "category": doc['category'],
+          "carbonFootprint": doc['carbonFootprint'],
+          "wasteDiverted": doc['wasteDiverted'],
+          "waterUsage": doc['waterUsage'],
+          "sustainabilityPercentage": doc['sustainabilityPercentage'],
+        };
+      }).toList();
+      loaded = true;
+      setState(() {
+        original_items = loadedItems;
+        items = List.from(original_items);
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading items from Firebase: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  //Método de Multi-threading con Isolate
+  Future<void> _calculateSustainabilityPercentage() async {
+  // List of items to process
+  List<Map<String, dynamic>> dataToProcess = items;
+  List<String> titleItems = [];
+
+  // Collect titles from recently viewed items
+  for (Map<String, dynamic> item in recentlyViewedItems) {
+    titleItems.add(item['title']);
+  }
+
+  // Find the common word
+  String commonWord = _findCommonWord(titleItems);
+
+  // Use await to handle the Future returned by the isolate
+  itemRecommended = await _calculateSustainabilityInIsolate(dataToProcess, commonWord);
+}
+
+static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<String, dynamic>> products, String commonWord) async {
+  double biggestValue = 0;
+  double sumOfAll = 0;
+  Map<String, dynamic> itemToRecommend = {
+    "title": "Sporty Jacket",
+    "price": 120000,
+    "image": "https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/images%2Fsporty_jacket.png?alt=media&token=0d7aed20-b56c-4efd-9919-0630fd6027fb",
+    "latitude": 4.6351,
+    "longitude": -74.0703,
+    "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.",
+    "category": "Jacket",
+    "carbonFootprint": 2.25,
+    "wasteDiverted": 1.5,
+    "waterUsage": 3000,
+    'sustainabilityPercentage': 10
+  };
+
+  // Perform calculations in an isolate
+  itemToRecommend = await Isolate.run(() {
+    if (commonWord.isNotEmpty) {
+      // Filter products based on the common word
+      List<Map<String, dynamic>> sameItems = [];
+      for (var item in products) {
+        String itemTitle = item['title'].toLowerCase();
+        if (itemTitle.contains(commonWord)) {
+          sameItems.add(item);
+        }
+      }
+      products = sameItems;
+    }
+
+    // Calculate the sum of all product values
+    for (var product in products) {
+      double carbonFootprint = (product['carbonFootprint'] ?? 0).toDouble();
+      double wasteDiverted = (product['wasteDiverted'] ?? 0).toDouble();
+      double waterUsage = (product['waterUsage'] ?? 0).toDouble();
+
+      double productValue = (carbonFootprint * 100) + (wasteDiverted * 20) + waterUsage;
+      sumOfAll += productValue;
+    }
+    // Find the product with the highest sustainability value
+    for (var product in products) {
+      double carbonFootprint = (product['carbonFootprint'] ?? 0).toDouble();
+      double wasteDiverted = (product['wasteDiverted'] ?? 0).toDouble();
+      double waterUsage = (product['waterUsage'] ?? 0).toDouble();
+
+      double productValue = (carbonFootprint * 100) + (wasteDiverted * 20) + waterUsage;
+      if (productValue / sumOfAll > biggestValue) {
+        biggestValue = productValue;
+        itemToRecommend = product;
+      }
+    }
+
+    // Calculate the sustainability percentage
+    double percentage = (biggestValue / sumOfAll) * 100;
+    itemToRecommend['sustainabilityPercentage'] = percentage.ceil();
+
+    return itemToRecommend;
+  });
+
+  return itemToRecommend;
+}
+
+
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF012826),
         title: Row(
           children: [
-
             Expanded(
               child: TextField(
                 decoration: InputDecoration(
@@ -63,8 +218,8 @@ class _ListItemsViewState extends State<ListItemsView> {
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, 
-            childAspectRatio: 0.7, 
+            crossAxisCount: 2,
+            childAspectRatio: 0.7,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
@@ -73,7 +228,6 @@ class _ListItemsViewState extends State<ListItemsView> {
             final item = items[index];
             return GestureDetector(
               onTap: () {
-                // Navega a la vista de detalles y agrega el ítem a la lista de últimos vistos, también actualiza la lista de items
                 _viewItem(context, item);
               },
               child: Card(
@@ -87,7 +241,7 @@ class _ListItemsViewState extends State<ListItemsView> {
                     Expanded(
                       child: Container(
                         padding: EdgeInsets.all(8),
-                        child: Image.asset(
+                        child: Image.network(
                           item['image'],
                           fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width * 0.4,
@@ -115,6 +269,18 @@ class _ListItemsViewState extends State<ListItemsView> {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF012826),
+        child: Icon(Icons.recycling, size: 30, color: Colors.white,), // Icono de reciclaje
+        onPressed: () {
+          _calculateSustainabilityPercentage();
+          Navigator.pushNamed(context, '/recommendation', arguments: {
+            'item': itemRecommended,
+          }); 
+
+          
+        },
       ),
     );
   }
