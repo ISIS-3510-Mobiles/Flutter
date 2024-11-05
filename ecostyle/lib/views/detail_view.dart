@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/view_model/details_view_model.dart';
+import 'package:ecostyle/shop/screens/checkout/checkout.dart';
 
 class DetailView extends StatefulWidget {
   const DetailView({super.key});
@@ -118,6 +119,12 @@ class _DetailViewState extends State<DetailView> {
                       ),
                       onPressed: () {
                         // Lógica para comprar
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckoutScreen(),
+                          ),
+                        );
                       },
                       child: Text(
                         'Buy now',
