@@ -12,6 +12,7 @@ import 'views/register_view.dart';
 import 'views/profile_view.dart';
 import 'views/list_items_view.dart';
 import 'views/detail_view.dart';
+import 'views/sustainable_recommendation.dart';
 import 'views/update_info_view.dart';
 import 'package:ecostyle/shop/screens/cart/cart.dart';
 import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
           '/list': (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
           '/cart': (context) => AppScaffold(child: const CartScreen(), routeName: '/cart'),
           '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
+          '/recommendation': (context) => AppScaffold(child: const SustainableRecommendationView(), routeName: '/recommendation'),
           '/addItem': (context) => AppScaffold(child:  AddProductScreen(), routeName: '/addItem'),
         },
       ),

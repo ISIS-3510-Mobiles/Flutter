@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/view_model/details_view_model.dart';
+import 'package:ecostyle/shop/screens/checkout/checkout.dart';
 
 class DetailView extends StatefulWidget {
   const DetailView({super.key});
@@ -64,10 +65,27 @@ class _DetailViewState extends State<DetailView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      viewModel.currentItem.image, // Usamos la imagen del producto seleccionado
+                    // Se hace un reemplazo de Image.asset por Image.network
+                    Image.network(
+                      viewModel.currentItem.image, // La URL de la imagen desde Firebase Storage
                       height: MediaQuery.of(context).size.height * 0.4,
                       fit: BoxFit.contain,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          );
+                        }
+                      },
+                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                        return Icon(Icons.error, size: 50, color: Colors.red);
+                      },
                     ),
                     SizedBox(height: 20),
                     Text(
@@ -101,6 +119,12 @@ class _DetailViewState extends State<DetailView> {
                       ),
                       onPressed: () {
                         // Lógica para comprar
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckoutScreen(),
+                          ),
+                        );
                       },
                       child: Text(
                         'Buy now',
@@ -218,9 +242,26 @@ class _DetailViewState extends State<DetailView> {
                             padding: const EdgeInsets.symmetric(horizontal: 8.0),
                             child: Column(
                               children: [
-                                Image.asset(
-                                  recommendedItem.image,
+                                Image.network(
+                                  recommendedItem.image, // La URL de la imagen desde Firebase Storage
                                   height: 80,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    } else {
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                              : null,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                    return Icon(Icons.error, size: 50, color: Colors.red);
+                                  },
                                 ),
                                 SizedBox(height: 5),
                                 Text(recommendedItem.title),
