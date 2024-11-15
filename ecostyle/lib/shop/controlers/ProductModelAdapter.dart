@@ -18,6 +18,10 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
       description: reader.readString(),
       category: reader.readString(),
       environmentalImpact: reader.readBool(),
+      waterUsage: reader.readDouble(),
+      wasteDiverted: reader.readDouble(),
+      sustainabilityPercentage: reader.readDouble(),
+      carbonFootprint: reader.readDouble(),
     );
   }
 

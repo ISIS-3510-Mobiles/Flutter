@@ -1,5 +1,6 @@
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -21,6 +22,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String _description = '';
   String _category = '';
   bool _enviromentalImpact = false;
+  double _carbonFootprint =  2.56;
+  double _sustainabilityPercentage = 80;
+  double _wasteDiverted = 3.4;
+  double _waterUsage = 3500;
+
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -28,10 +34,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     if (image != null) {
       setState(() {
-        _imagePath = image.path; // Store the image path
+        _imagePath = image.path; // Update the local path
       });
+
+      try {
+        // Upload to Firebase Storage
+        final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('products/images/$fileName');
+
+        await ref.putFile(File(image.path));
+
+        // Get the download URL
+        String downloadUrl = await ref.getDownloadURL();
+
+        setState(() {
+          _imagePath = downloadUrl; // Use the URL for views
+        });
+
+        print('Image uploaded successfully: $downloadUrl');
+      } catch (e) {
+        print('Error uploading image: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image')),
+        );
+      }
     }
   }
+
 
   Future<void> _checkConnectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -172,6 +203,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       description: _description,
                       category: _category,
                       environmentalImpact: _enviromentalImpact,
+                      carbonFootprint: _carbonFootprint,
+                      sustainabilityPercentage: _sustainabilityPercentage,
+                      wasteDiverted: _wasteDiverted,
+                      waterUsage: _waterUsage,
                     );
                     await firebaseService.addProduct(newProduct);
                     Navigator.pop(context);

@@ -56,7 +56,7 @@ class FirebaseService {
   }
 
   Future<void> addProduct(ProductModel product) async {
-    await _firestore.collection('products_temp').add(product.toMap());
+    await _firestore.collection('items').add(product.toMap());
   }
 
   Future<void> clearCart() async {

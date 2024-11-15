@@ -1,6 +1,4 @@
-
 import 'package:hive_ce_flutter/adapters.dart';
-
 
 @HiveType(typeId: 0)
 class ProductModel extends HiveObject {
@@ -31,6 +29,19 @@ class ProductModel extends HiveObject {
   @HiveField(8)
   bool environmentalImpact;
 
+  // New fields
+  @HiveField(9)
+  double carbonFootprint;
+
+  @HiveField(10)
+  double wasteDiverted;
+
+  @HiveField(11)
+  double sustainabilityPercentage;
+
+  @HiveField(12)
+  double waterUsage;
+
   ProductModel({
     required this.id,
     required this.title,
@@ -41,6 +52,10 @@ class ProductModel extends HiveObject {
     required this.description,
     required this.category,
     required this.environmentalImpact,
+    required this.carbonFootprint,
+    required this.wasteDiverted,
+    required this.sustainabilityPercentage,
+    required this.waterUsage,
   });
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
@@ -54,6 +69,10 @@ class ProductModel extends HiveObject {
       description: map['description'] ?? '',
       category: map['category'] ?? '',
       environmentalImpact: map['environmentalImpact'] ?? false,
+      carbonFootprint: map['carbonFootprint']?.toDouble() ?? 0.0,
+      wasteDiverted: map['wasteDiverted']?.toDouble() ?? 0.0,
+      sustainabilityPercentage: map['sustainabilityPercentage']?.toDouble() ?? 0.0,
+      waterUsage: map['waterUsage']?.toDouble() ?? 0.0,
     );
   }
 
@@ -68,6 +87,10 @@ class ProductModel extends HiveObject {
       'description': description,
       'category': category,
       'environmentalImpact': environmentalImpact,
+      'carbonFootprint': carbonFootprint,
+      'wasteDiverted': wasteDiverted,
+      'sustainabilityPercentage': sustainabilityPercentage,
+      'waterUsage': waterUsage,
     };
   }
 }

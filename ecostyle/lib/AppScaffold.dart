@@ -82,6 +82,18 @@ class AppScaffold extends StatelessWidget {
                         Navigator.pushNamed(context, '/sustainability');
                       },
                     ),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.add, // Cambia por el ícono que prefieras
+                        size: 30.0,
+                        color: Colors.green, // Cambia al color que prefieras
+                      ),
+
+                      title: const Text('Add Item'),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/addItem');
+                      },
+                    ),
                     const Divider(), // Add a divider for better visual separation
                     ListTile(
                       leading: const Icon(Icons.logout),
