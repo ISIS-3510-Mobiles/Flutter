@@ -134,7 +134,7 @@ class _DetailViewState extends State<DetailView> {
                     SizedBox(height: 10),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF7FB9A8),
+                        backgroundColor: Color(0xFF007451),
                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
                       ),
                       onPressed: () {
