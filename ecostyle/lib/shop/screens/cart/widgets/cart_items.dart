@@ -1,43 +1,35 @@
-import 'package:ecostyle/models/product_model.dart';
 import 'package:flutter/material.dart';
+import 'package:ecostyle/models/product_model.dart';
 
 class CartItemWidget extends StatelessWidget {
   final ProductModel item;
-  final VoidCallback onRemove; // Callback for the remove action
+  final VoidCallback onRemove;
 
   const CartItemWidget({
-    super.key,
     required this.item,
     required this.onRemove,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          // Display product image
-          Image.asset(item.image, width: 60, height: 60),
-          const SizedBox(width: 12.0),
-
-          // Display product title and price
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.title, style: Theme.of(context).textTheme.bodyLarge),
-                Text('\$${item.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
-          ),
-
-          // Remove button
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: onRemove, // Calls the onRemove callback
-          ),
-        ],
+    return Card(
+      child: ListTile(
+        leading: item.image.isNotEmpty
+            ? Image.network(
+          item.image,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image),
+        )
+            : Icon(Icons.image_not_supported),
+        title: Text(item.title),
+        subtitle: Text('\$${item.price}'),
+        trailing: IconButton(
+          icon: Icon(Icons.delete),
+          onPressed: onRemove,
+        ),
       ),
     );
   }
