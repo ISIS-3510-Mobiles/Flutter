@@ -145,15 +145,23 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
+
+
   Future<void> authenticate(BuildContext context) async {
     final LocalAuthentication localAuth = LocalAuthentication();
     bool authenticated = false;
 
-    try {
-      authenticated = await localAuth.authenticate(
-        localizedReason: 'Please authenticate to change your password',
-        options: const AuthenticationOptions(biometricOnly: true),
-      );
+     try {
+      if (Platform.isIOS) {
+        // For iOS, use biometric authentication
+        authenticated = await localAuth.authenticate(
+          localizedReason: 'Please authenticate to change your password',
+          options: const AuthenticationOptions(biometricOnly: true),
+        );
+      } else {
+        // For non-iOS, bypass biometric authentication
+        authenticated = true; // Automatically authenticate if not iOS
+      }
     } catch (e) {
       // Handle the error, like showing a snackbar
       ScaffoldMessenger.of(context).showSnackBar(
