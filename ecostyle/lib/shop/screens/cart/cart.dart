@@ -1,11 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
-import 'package:ecostyle/shop/controlers/LocalCartService.dart';
 import 'package:ecostyle/shop/screens/cart/widgets/cart_items.dart';
 import 'package:ecostyle/shop/screens/checkout/checkout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
@@ -15,42 +15,61 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   late Future<List<ProductModel>> _cartItemsFuture;
+  bool _isConnected = true; // Tracks connectivity status
+  final List<ProductModel> _localCart = []; // Temporary in-memory cart storage
 
   @override
   void initState() {
     super.initState();
+    _listenToConnectivityChanges();
     _cartItemsFuture = _fetchCartItems();
   }
 
-  Future<List<ProductModel>> _fetchCartItems() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    final localCartService = LocalCartService();
+  void _listenToConnectivityChanges() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      setState(() {
+        _isConnected = result != ConnectivityResult.none;
+      });
 
-    if (connectivityResult == ConnectivityResult.none) {
-      // Return local items when offline
-      return await localCartService.getCartItems();
-    } else {
-      final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-      final onlineItems = await firebaseService.fetchCartItems();
-
-      // Sync local storage with online data
-      await localCartService.clearCart();
-      for (var item in onlineItems) {
-        await localCartService.addItemToCart(item);
+      // Fetch items again if connectivity status changes
+      if (_isConnected) {
+        setState(() {
+          _cartItemsFuture = _fetchCartItems();
+        });
       }
-      return onlineItems;
+    });
+  }
+
+  Future<List<ProductModel>> _fetchCartItems() async {
+    try {
+      if (!_isConnected) {
+        // Return local in-memory items when offline
+        return _localCart;
+      } else {
+        // Fetch online items from Firebase
+        final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+        final onlineItems = await firebaseService.fetchCartItems();
+
+        // Sync online items to local in-memory storage
+        _localCart
+          ..clear()
+          ..addAll(onlineItems);
+
+        return onlineItems;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error in _fetchCartItems: $e\n$stackTrace');
+      throw Exception('Failed to fetch cart items. Please try again later.');
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder<List<ProductModel>>(
       future: _cartItemsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
@@ -73,7 +92,7 @@ class _CartScreenState extends State<CartScreen> {
                 return CartItemWidget(
                   item: item,
                   onRemove: () async {
-                    await _removeFromCart(context, item.id);
+                    await _confirmRemoveFromCartByTitle(context, item.title);
                   },
                 );
               },
@@ -102,30 +121,59 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   double _calculateTotal(List<ProductModel> items) {
-    return items.fold(0, (total, item) => total + item.price);
+    return items.fold(0, (total, item) => total + (item.price ?? 0.0));
   }
 
-  Future<void> _removeFromCart(BuildContext context, String itemId) async {
-    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
-    final localCartService = LocalCartService();
-
-    // Remove item from Firebase if online
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult != ConnectivityResult.none) {
-      await firebaseService.removeItemFromCart(itemId);
-    }
-
-    // Remove item from local storage
-    await localCartService.removeItemFromCart(itemId);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Item removed from cart')),
+  Future<void> _confirmRemoveFromCartByTitle(BuildContext context, String title) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Item'),
+        content: Text('Are you sure you want to remove "$title" from the cart?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
     );
 
-    // Refresh cart items
-    setState(() {
-      _cartItemsFuture = _fetchCartItems();
-    });
+    if (confirm == true) {
+      await _removeFromCartByTitle(context, title);
+    }
+  }
+
+  Future<void> _removeFromCartByTitle(BuildContext context, String title) async {
+    try {
+      final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+
+      if (_isConnected) {
+        // Remove item from Firebase if online
+        await firebaseService.removeItemFromCartByTitle(title);
+      }
+
+      // Remove item from local in-memory storage
+      _localCart.removeWhere((item) => item.title == title);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Item removed from cart')),
+      );
+
+      // Refresh cart items
+      setState(() {
+        _cartItemsFuture = _fetchCartItems();
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Error in _removeFromCartByTitle: $e\n$stackTrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to remove item. Please try again later.')),
+      );
+    }
   }
 
 }

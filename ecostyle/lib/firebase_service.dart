@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/models/sustainability_model.dart';
+import 'package:flutter/cupertino.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -13,31 +14,60 @@ class FirebaseService {
   }
 
   Future<List<ProductModel>> fetchCartItems() async {
-    String userId = "temp"; // Retrieve this from your authentication method
-    DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
+    try {
+      // Replace with a method to fetch authenticated user ID
+      String userId = "temp"; // Replace with FirebaseAuth.instance.currentUser?.uid
+      if (userId.isEmpty) {
+        throw Exception("User ID is empty. Please authenticate.");
+      }
 
-    // Get the cart document
-    DocumentSnapshot cartSnapshot = await cartRef.get();
+      // Reference to the user's cart document in Firestore
+      DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
 
-    // Check if the document exists
-    if (cartSnapshot.exists) {
+      // Get the cart document snapshot
+      DocumentSnapshot cartSnapshot = await cartRef.get();
+
+      // Check if the document exists
+      if (!cartSnapshot.exists) {
+        debugPrint("Cart document does not exist for userId: $userId");
+        return []; // Return an empty list if the cart document doesn't exist
+      }
+
       // Safely cast the data to Map<String, dynamic>
-      Map<String, dynamic> data = cartSnapshot.data() as Map<String, dynamic>;
+      Map<String, dynamic>? data = cartSnapshot.data() as Map<String, dynamic>?;
+      if (data == null || !data.containsKey('items')) {
+        debugPrint("Cart data is null or missing 'items' field for userId: $userId");
+        return []; // Return an empty list if the 'items' field is missing
+      }
 
-      // Get the list of items from the document
-      List<dynamic> items = data['items'] ?? [];
+      // Safely extract the list of items
+      List<dynamic> items = data['items'];
+      if (items is! List) {
+        debugPrint("'items' field is not a valid list for userId: $userId");
+        return []; // Return an empty list if 'items' is not a valid list
+      }
 
       // Convert the dynamic list to a list of ProductModel
-      List<ProductModel> cartItems = items.map((item) => ProductModel.fromMap(item)).toList();
+      List<ProductModel> cartItems = items.map((item) {
+        try {
+          return ProductModel.fromMap(item as Map<String, dynamic>);
+        } catch (e) {
+          debugPrint("Error parsing cart item: $e");
+          return null; // Skip invalid items
+        }
+      }).whereType<ProductModel>().toList();
 
+      debugPrint("Fetched ${cartItems.length} items for userId: $userId");
       return cartItems;
-    } else {
-      return []; // Return an empty list if the cart doesn't exist
+    } catch (e, stackTrace) {
+      // Log the error for debugging purposes
+      debugPrint("Error in fetchCartItems: $e\n$stackTrace");
+      throw Exception("Failed to fetch cart items. Please try again later.");
     }
   }
 
-  // Remove an item from the cart
-  Future<void> removeItemFromCart(String itemId) async {
+  // Remove an item from the cart using the title
+  Future<void> removeItemFromCartByTitle(String title) async {
     String userId = "temp"; // Retrieve this from your authentication method
     DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
 
@@ -46,14 +76,15 @@ class FirebaseService {
 
       if (snapshot.exists) {
         List<dynamic> items = (snapshot.data() as Map<String, dynamic>)['items'] ?? [];
-        // Filter out the item with the given itemId
-        items = items.where((item) => item['id'] != itemId).toList();
+        // Filter out the item with the given title
+        items = items.where((item) => item['title'] != title).toList();
 
         // Update the cart with the filtered items list
         transaction.update(cartRef, {'items': items});
       }
     });
   }
+
 
   Future<void> addProduct(ProductModel product) async {
     await _firestore.collection('items').add(product.toMap());
