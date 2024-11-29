@@ -39,7 +39,6 @@ class _ListItemsViewState extends State<ListItemsView> {
     super.dispose();
   }
 
-  /// Escucha cambios en la conectividad
   void _startConnectivityMonitoring() {
     _connectivitySubscription = 
         Connectivity().onConnectivityChanged.listen((connectivityResult) {
