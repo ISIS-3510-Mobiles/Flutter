@@ -67,6 +67,16 @@ class AppScaffold extends StatelessWidget {
                         },
                       ),
                       ListTile(
+                        leading: const Icon(Icons.receipt , color: Colors.white),
+                        title: const Text(
+                          'Orders',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/orders');
+                        },
+                      ),
+                      ListTile(
                         leading: const Icon(Icons.list, color: Colors.white),
                         title: const Text(
                           'List Items',
