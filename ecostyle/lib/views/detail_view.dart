@@ -52,8 +52,10 @@ class _DetailViewState extends State<DetailView> {
               ),
               IconButton(
                 icon: Icon(Icons.shopping_cart, color: Colors.white),
-                onPressed: () {},
-              ),
+                onPressed: () {
+                 Navigator.pushNamed(context, '/cart');
+              },
+            ),
             ],
           ),
         ),
@@ -134,7 +136,7 @@ class _DetailViewState extends State<DetailView> {
                     SizedBox(height: 10),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF007451),
+                        backgroundColor: Color(0xFF7FB9A8),
                         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 40),
                       ),
                       onPressed: () {

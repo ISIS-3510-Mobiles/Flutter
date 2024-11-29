@@ -158,30 +158,32 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  TextField(
+                  TextFormField(
                     controller: _emailController, // Set the controller for the email field
                     decoration: InputDecoration(
-                      hintText: 'Email',
+                      labelText: 'Email',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
+                      floatingLabelBehavior: FloatingLabelBehavior.auto, // Added floating label
                     ),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     onChanged: (value) => password = value.isNotEmpty ? value : null, // Set password value
                     obscureText: true,
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      labelText: 'Password',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
+                      floatingLabelBehavior: FloatingLabelBehavior.auto, // Added floating label
                     ),
                   ),
                   const SizedBox(height: 20),

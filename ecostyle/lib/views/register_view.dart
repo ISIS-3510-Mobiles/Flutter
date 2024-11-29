@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -13,7 +12,6 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
 
   String email = '';
   String password = '';
@@ -41,7 +39,8 @@ class _RegisterViewState extends State<RegisterView> {
   bool _validatePassword(String password) {
     final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$');
     if (!passwordRegex.hasMatch(password) || password.contains(' ')) {
-      _showErrorMessage('Password must be at least 8 characters long and include uppercase, lowercase, a digit, and a special character without spaces.');
+      _showErrorMessage(
+          'Password must be at least 8 characters long and include uppercase, lowercase, a digit, and a special character without spaces.');
       return false;
     }
     return true;
@@ -76,40 +75,39 @@ class _RegisterViewState extends State<RegisterView> {
 
   // Method to register the user
   Future<void> _registerWithEmailAndPassword() async {
-  if (_validateEmail(email) &&
-      _validatePassword(password) &&
-      _validateName(name) &&
-      _validateAddress(address) &&
-      _validatePhone(phone)) {
-    try {
-      // Registra al usuario
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    if (_validateEmail(email) &&
+        _validatePassword(password) &&
+        _validateName(name) &&
+        _validateAddress(address) &&
+        _validatePhone(phone)) {
+      try {
+        // Register the user
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // Guarda la información del usuario en Firestore
-      await _firestore.collection('User').doc(email).set({
-        'name': name,
-        'address': address,
-        'phone': phone,
-        'createdAt': FieldValue.serverTimestamp(), // Guarda la fecha y hora del registro
-      });
+        // Save user information in Firestore
+        await _firestore.collection('User').doc(email).set({
+          'name': name,
+          'address': address,
+          'phone': phone,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration Successful')),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration Successful')),
+        );
 
-      // Navegar a la pantalla de perfil
-      Navigator.pushNamed(context, '/profile');
-    } on FirebaseAuthException catch (e) {
-      _showErrorMessage('Error: ${e.message}');
+        // Navigate to the profile screen
+        Navigator.pushNamed(context, '/profile');
+      } on FirebaseAuthException catch (e) {
+        _showErrorMessage('Error: ${e.message}');
+      }
+    } else {
+      _showErrorMessage('Please check your input for errors.');
     }
-  } else {
-    _showErrorMessage('Please check your input for errors.');
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -137,14 +135,15 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  TextField(
+                  TextFormField(
                     onChanged: (value) => setState(() {
                       email = value;
                     }),
                     decoration: InputDecoration(
-                      hintText: 'Email',
+                      labelText: 'Email',
                       filled: true,
                       fillColor: Colors.white,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -152,15 +151,16 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     obscureText: true,
                     onChanged: (value) => setState(() {
                       password = value;
                     }),
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      labelText: 'Password',
                       filled: true,
                       fillColor: Colors.white,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -168,14 +168,15 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     onChanged: (value) => setState(() {
                       name = value;
                     }),
                     decoration: InputDecoration(
-                      hintText: 'Name',
+                      labelText: 'Name',
                       filled: true,
                       fillColor: Colors.white,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -183,14 +184,15 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     onChanged: (value) => setState(() {
                       address = value;
                     }),
                     decoration: InputDecoration(
-                      hintText: 'Address',
+                      labelText: 'Address',
                       filled: true,
                       fillColor: Colors.white,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -198,14 +200,15 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  TextField(
+                  TextFormField(
                     onChanged: (value) => setState(() {
                       phone = value;
                     }),
                     decoration: InputDecoration(
-                      hintText: 'Phone',
+                      labelText: 'Phone',
                       filled: true,
                       fillColor: Colors.white,
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
