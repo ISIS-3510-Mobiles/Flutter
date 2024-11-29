@@ -34,6 +34,12 @@ class _DetailViewState extends State<DetailView> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFF012826),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white), // Aquí cambiamos el color del ícono
+            onPressed: () {
+              Navigator.pop(context); // Esta acción hace que se regrese a la pantalla anterior
+            },
+          ),
           title: Row(
             children: [
               Expanded(
@@ -69,24 +75,41 @@ class _DetailViewState extends State<DetailView> {
                   children: [
                     // Se hace un reemplazo de Image.asset por Image.network
                     Image.network(
-                      viewModel.currentItem.image, // La URL de la imagen desde Firebase Storage
+                      viewModel.currentItem.image,
                       height: MediaQuery.of(context).size.height * 0.4,
                       fit: BoxFit.contain,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                      loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) {
                           return child;
                         } else {
                           return Center(
                             child: CircularProgressIndicator(
                               value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
                                   : null,
                             ),
                           );
                         }
                       },
-                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                        return Icon(Icons.error, size: 50, color: Colors.red);
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_not_supported,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'No image available',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            );
                       },
                     ),
                     SizedBox(height: 20),
@@ -245,24 +268,41 @@ class _DetailViewState extends State<DetailView> {
                             child: Column(
                               children: [
                                 Image.network(
-                                  recommendedItem.image, // La URL de la imagen desde Firebase Storage
+                                  recommendedItem.image,
                                   height: 80,
                                   fit: BoxFit.cover,
-                                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                  loadingBuilder: (context, child, loadingProgress) {
                                     if (loadingProgress == null) {
                                       return child;
                                     } else {
                                       return Center(
                                         child: CircularProgressIndicator(
                                           value: loadingProgress.expectedTotalBytes != null
-                                              ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                              ? loadingProgress.cumulativeBytesLoaded /
+                                                  (loadingProgress.expectedTotalBytes ?? 1)
                                               : null,
                                         ),
                                       );
                                     }
                                   },
-                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                                    return Icon(Icons.error, size: 50, color: Colors.red);
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'No image available',
+                                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   },
                                 ),
                                 SizedBox(height: 5),
