@@ -35,6 +35,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
     });
     if (!_isConnected) {
       _showNoConnectionDialog();
+      // Set the default image in case of no internet
+      setState(() {
+        _imagePath =
+            'https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/products%2Fimages%2Fpexels-cottonbro-4068314.jpg?alt=media';
+      });
     }
   }
 
@@ -73,23 +78,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
     } else {
       // If no image was picked, keep the default image
       setState(() {
-        _imagePath = 'https://firebasestorage.googleapis.com/v0/b/YOUR_PROJECT_ID.appspot.com/o/products%2Fimages%2Fpexels-cottonbro-4068314.jpg?alt=media'; // URL of your default image in Firebase Storage
+        _imagePath =
+            'https://firebasestorage.googleapis.com/v0/b/YOUR_PROJECT_ID.appspot.com/o/products%2Fimages%2Fpexels-cottonbro-4068314.jpg?alt=media'; // URL of your default image in Firebase Storage
       });
     }
   }
-
-  Future<void> _checkConnectivity() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.none) {
-      _showNoConnectionDialog();
-      // Set the default image in case of no internet
-      setState(() {
-        _imagePath = 'https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/products%2Fimages%2Fpexels-cottonbro-4068314.jpg?alt=media';
-
-      });
-    }
-  }
-
 
   void _showNoConnectionDialog() {
     showDialog(
@@ -168,9 +161,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     borderRadius: BorderRadius.circular(8),
                     image: _imagePath != null
                         ? DecorationImage(
-                      image: FileImage(File(_imagePath!)),
-                      fit: BoxFit.cover,
-                    )
+                            image: FileImage(File(_imagePath!)),
+                            fit: BoxFit.cover,
+                          )
                         : null,
                   ),
                   child: _imagePath == null
