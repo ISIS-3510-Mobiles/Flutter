@@ -14,6 +14,7 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _isConnected = true; // Connectivity flag
   String _title = '';
   int _price = 0;
   String? _imagePath; // Nullable image path
@@ -22,11 +23,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String _description = '';
   String _category = '';
   bool _enviromentalImpact = false;
-  double _carbonFootprint =  2.56;
+  double _carbonFootprint = 2.56;
   double _sustainabilityPercentage = 80;
   double _wasteDiverted = 3.4;
   double _waterUsage = 3500;
 
+  Future<void> _checkConnectivity() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    setState(() {
+      _isConnected = connectivityResult != ConnectivityResult.none;
+    });
+    if (!_isConnected) {
+      _showNoConnectionDialog();
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -75,6 +85,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       // Set the default image in case of no internet
       setState(() {
         _imagePath = 'https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/products%2Fimages%2Fpexels-cottonbro-4068314.jpg?alt=media';
+
       });
     }
   }
@@ -114,6 +125,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           key: _formKey,
           child: Column(
             children: [
+              // Title field
               TextFormField(
                 decoration: InputDecoration(labelText: 'Title'),
                 onChanged: (value) {
@@ -128,6 +140,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return null;
                 },
               ),
+              // Price field
               TextFormField(
                 decoration: InputDecoration(labelText: 'Price'),
                 keyboardType: TextInputType.number,
@@ -144,7 +157,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 },
               ),
 
-              // Image selection button
+              // Image selection
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -182,6 +195,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return null;
                 },
               ),
+              // Category field
               TextFormField(
                 decoration: InputDecoration(labelText: 'Category'),
                 onChanged: (value) {
@@ -200,25 +214,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
               // Submit button
               ElevatedButton(
                 onPressed: () async {
-                  await _checkConnectivity(); // Check connectivity before submitting
-                  if (_formKey.currentState!.validate()) {
-                    final newProduct = ProductModel(
-                      id: DateTime.now().toString(),
-                      title: _title,
-                      price: _price,
-                      image: _imagePath ?? '',
-                      latitude: _latitude,
-                      longitude: _longitude,
-                      description: _description,
-                      category: _category,
-                      environmentalImpact: _enviromentalImpact,
-                      carbonFootprint: _carbonFootprint,
-                      sustainabilityPercentage: _sustainabilityPercentage,
-                      wasteDiverted: _wasteDiverted,
-                      waterUsage: _waterUsage,
-                    );
-                    await firebaseService.addProduct(newProduct);
-                    Navigator.pop(context);
+                  await _checkConnectivity(); // Update connectivity status
+                  if (_isConnected) {
+                    if (_formKey.currentState!.validate()) {
+                      final newProduct = ProductModel(
+                        id: DateTime.now().toString(),
+                        title: _title,
+                        price: _price,
+                        image: _imagePath ?? '',
+                        latitude: _latitude,
+                        longitude: _longitude,
+                        description: _description,
+                        category: _category,
+                        environmentalImpact: _enviromentalImpact,
+                        carbonFootprint: _carbonFootprint,
+                        sustainabilityPercentage: _sustainabilityPercentage,
+                        wasteDiverted: _wasteDiverted,
+                        waterUsage: _waterUsage,
+                      );
+                      await firebaseService.addProduct(newProduct);
+                      Navigator.pop(context);
+                    }
+                  } else {
+                    // Show dialog if offline
+                    _showNoConnectionDialog();
                   }
                 },
                 child: Text('Add Product'),
