@@ -18,24 +18,43 @@ class _ListItemsViewState extends State<ListItemsView> {
   List<Map<String, dynamic>> recentlyViewedItems = [];
   Position? userPosition;
   bool isLoading = true;
-  Timer? connectionTimer;
-  bool loaded = false;
+  bool isOffline = false; // Estado de conexión
+  //Timer? connectionTimer;
+  //bool loaded = false;
   Map<String,dynamic> itemRecommended = {"title": "Sporty Jacket", "price": 120000, "image": "https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/images%2Fsporty_jacket.png?alt=media&token=3c413908-747d-4f9b-8598-c35f2f40cbe7", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket", "carbonFootprint":2.25, "wasteDiverted":1.5,"waterUsage":3000, 'sustainabilityPercentage':75};
+
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
+    _startConnectivityMonitoring();
     _loadItemsFromFirebase();
-    _startConnectivityCheck(); // Inicia el chequeo de conectividad
   }
 
   @override
   void dispose() {
-    connectionTimer?.cancel();
+    _connectivitySubscription.cancel();
+    //connectionTimer?.cancel();
     super.dispose();
   }
 
-  // Método que inicializa el chequeo de conectividad eventual
+  void _startConnectivityMonitoring() {
+    _connectivitySubscription = 
+        Connectivity().onConnectivityChanged.listen((connectivityResult) {
+      setState(() {
+        isOffline = connectivityResult == ConnectivityResult.none;
+      });
+
+      if (!isOffline) {
+        // Si la conexión se restaura, intenta cargar los datos
+        _loadItemsFromFirebase();
+      }
+    });
+  }
+
+  /** 
+   Método que inicializa el chequeo de conectividad eventual
   void _startConnectivityCheck() {
     connectionTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -56,7 +75,7 @@ class _ListItemsViewState extends State<ListItemsView> {
     });
   }
 
-  Future<void> _loadItemsFromFirebase() async {
+    /** 
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       // No hay conexión a internet
@@ -70,7 +89,13 @@ class _ListItemsViewState extends State<ListItemsView> {
         ),
       );
       return; // Sale de la función si no hay conexión
-    }
+    }*////
+  *////
+
+  Future<void> _loadItemsFromFirebase() async {
+    if (isOffline) return; // No intenta cargar si no hay conexión
+
+    
 
     try {
       final querySnapshot = await FirebaseFirestore.instance.collection('items').get();
@@ -87,9 +112,17 @@ class _ListItemsViewState extends State<ListItemsView> {
           "wasteDiverted": doc['wasteDiverted'],
           "waterUsage": doc['waterUsage'],
           "sustainabilityPercentage": doc['sustainabilityPercentage'],
+          /**
+          "title": doc['name'],
+          "price": doc['price'],
+          "image": doc['imageResource'],
+          "latitude": doc['latitude'],
+          "longitude": doc['longitude'],
+          "description": doc['description'],
+          */
         };
       }).toList();
-      loaded = true;
+      //loaded = true;
       setState(() {
         original_items = loadedItems;
         items = List.from(original_items);
@@ -187,8 +220,32 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
 
   @override
   Widget build(BuildContext context) {
+
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
+    }
+
+    if (isOffline) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color(0xFF012826),
+          title: Text('EcoStyle'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.wifi_off, size: 80, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                'No internet connection. Please check your network.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Scaffold(
@@ -246,9 +303,30 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
                           fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width * 0.4,
                           height: MediaQuery.of(context).size.height * 0.2,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Icono de "imagen no disponible"
+                            return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_not_supported,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'No image available',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
+
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(

@@ -205,4 +205,17 @@ class FirebaseService {
       throw Exception('Failed to create order: $e');
     }
   }
+
+  Future<void> createOrder(Map<String, dynamic> orderDetails) async {
+  try {
+    String userId = currentUserId;
+    final ordersCollection = FirebaseFirestore.instance.collection('orders');
+    await ordersCollection.add(orderDetails);
+  } catch (e) {
+    throw Exception('Failed to create order: $e');
+  }
+  }
+
+
+
 }

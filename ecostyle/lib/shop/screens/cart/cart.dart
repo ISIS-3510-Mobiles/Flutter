@@ -65,87 +65,41 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ProductModel>>(
-      future: _cartItemsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Cart', style: Theme.of(context).textTheme.headlineSmall),
+      ),
+      body: FutureBuilder<List<ProductModel>>(
+        future: _cartItemsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
 
-        final cartItems = snapshot.data ?? [];
+          final cartItems = snapshot.data ?? [];
 
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Cart', style: Theme.of(context).textTheme.headlineSmall),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: cartItems.isNotEmpty
-                ? ListView.builder(
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return CartItemWidget(
-                  item: item,
-                  onRemove: () async {
-                    await _confirmRemoveFromCartByTitle(context, item.title);
-                  },
-                );
-              },
-            )
-                : const Center(child: Text('Your cart is empty.')),
-          ),
-          bottomNavigationBar: cartItems.isNotEmpty
-              ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CheckoutScreen(),
-                  ),
-                );
-              },
-              child: Text('Checkout (\$${_calculateTotal(cartItems)})'),
-            ),
+          return cartItems.isNotEmpty
+              ? CartItemsList(
+            cartItems: cartItems,
+            onRemove: (title) => _removeFromCartByTitle(context, title),
           )
-              : null,
-        );
-      },
-    );
-  }
-
-  double _calculateTotal(List<ProductModel> items) {
-    return items.fold(0, (total, item) => total + (item.price ?? 0.0));
-  }
-
-  Future<void> _confirmRemoveFromCartByTitle(BuildContext context, String title) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Item'),
-        content: Text('Are you sure you want to remove "$title" from the cart?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
-          ),
-        ],
+              : const Center(child: Text('Your cart is empty.'));
+        },
+      ),
+      bottomNavigationBar: FutureBuilder<List<ProductModel>>(
+        future: _cartItemsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done || snapshot.data?.isEmpty == true) {
+            return const SizedBox.shrink();
+          }
+          return CheckoutButton(cartItems: snapshot.data!);
+        },
       ),
     );
-
-    if (confirm == true) {
-      await _removeFromCartByTitle(context, title);
-    }
   }
 
   Future<void> _removeFromCartByTitle(BuildContext context, String title) async {
@@ -160,6 +114,7 @@ class _CartScreenState extends State<CartScreen> {
       // Remove item from local in-memory storage
       _localCart.removeWhere((item) => item.title == title);
 
+      // Show a SnackBar using ScaffoldMessenger
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item removed from cart')),
       );
@@ -175,7 +130,53 @@ class _CartScreenState extends State<CartScreen> {
       );
     }
   }
+}
 
+class CartItemsList extends StatelessWidget {
+  final List<ProductModel> cartItems;
+  final Future<void> Function(String title) onRemove;
+
+  const CartItemsList({
+    super.key,
+    required this.cartItems,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: cartItems.length,
+      itemBuilder: (context, index) {
+        final item = cartItems[index];
+        return CartItemWidget(
+          item: item,
+          onRemove: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Remove Item'),
+                content: Text('Are you sure you want to remove "${item.title}" from the cart?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Remove'),
+                  ),
+                ],
+              ),
+            );
+
+            if (confirm == true) {
+              await onRemove(item.title);
+            }
+          },
+        );
+      },
+    );
+  }
 }
 
 class CartItemsList extends StatelessWidget {
@@ -252,4 +253,3 @@ class CheckoutButton extends StatelessWidget {
       ),
     );
   }
-}
