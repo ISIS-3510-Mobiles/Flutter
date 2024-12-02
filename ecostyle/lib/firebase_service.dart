@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecostyle/models/event_model.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/models/sustainability_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,6 @@ class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
   String get currentUserId {
     final user = _auth.currentUser;
     if (user == null) {
@@ -16,7 +16,6 @@ class FirebaseService {
     }
     return user.uid;
   }
-
 
   Future<List<ProductModel>> fetchProducts() async {
     QuerySnapshot snapshot = await _firestore.collection('products').get();
@@ -28,13 +27,15 @@ class FirebaseService {
   Future<List<ProductModel>> fetchCartItems() async {
     try {
       // Replace with a method to fetch authenticated user ID
-      String userId = "temp"; // Replace with FirebaseAuth.instance.currentUser?.uid
+      String userId =
+          "temp"; // Replace with FirebaseAuth.instance.currentUser?.uid
       if (userId.isEmpty) {
         throw Exception("User ID is empty. Please authenticate.");
       }
 
       // Reference to the user's cart document in Firestore
-      DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
+      DocumentReference cartRef =
+          _firestore.collection('carts_users').doc(userId);
 
       // Get the cart document snapshot
       DocumentSnapshot cartSnapshot = await cartRef.get();
@@ -48,7 +49,8 @@ class FirebaseService {
       // Safely cast the data to Map<String, dynamic>
       Map<String, dynamic>? data = cartSnapshot.data() as Map<String, dynamic>?;
       if (data == null || !data.containsKey('items')) {
-        debugPrint("Cart data is null or missing 'items' field for userId: $userId");
+        debugPrint(
+            "Cart data is null or missing 'items' field for userId: $userId");
         return []; // Return an empty list if the 'items' field is missing
       }
 
@@ -60,14 +62,17 @@ class FirebaseService {
       }
 
       // Convert the dynamic list to a list of ProductModel
-      List<ProductModel> cartItems = items.map((item) {
-        try {
-          return ProductModel.fromMap(item as Map<String, dynamic>);
-        } catch (e) {
-          debugPrint("Error parsing cart item: $e");
-          return null; // Skip invalid items
-        }
-      }).whereType<ProductModel>().toList();
+      List<ProductModel> cartItems = items
+          .map((item) {
+            try {
+              return ProductModel.fromMap(item as Map<String, dynamic>);
+            } catch (e) {
+              debugPrint("Error parsing cart item: $e");
+              return null; // Skip invalid items
+            }
+          })
+          .whereType<ProductModel>()
+          .toList();
 
       debugPrint("Fetched ${cartItems.length} items for userId: $userId");
       return cartItems;
@@ -81,13 +86,15 @@ class FirebaseService {
   // Remove an item from the cart using the title
   Future<void> removeItemFromCartByTitle(String title) async {
     String userId = "temp"; // Retrieve this from your authentication method
-    DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
+    DocumentReference cartRef =
+        _firestore.collection('carts_users').doc(userId);
 
     await _firestore.runTransaction((transaction) async {
       DocumentSnapshot snapshot = await transaction.get(cartRef);
 
       if (snapshot.exists) {
-        List<dynamic> items = (snapshot.data() as Map<String, dynamic>)['items'] ?? [];
+        List<dynamic> items =
+            (snapshot.data() as Map<String, dynamic>)['items'] ?? [];
         // Filter out the item with the given title
         items = items.where((item) => item['title'] != title).toList();
 
@@ -97,25 +104,25 @@ class FirebaseService {
     });
   }
 
-
   Future<void> addProduct(ProductModel product) async {
     await _firestore.collection('items').add(product.toMap());
   }
 
   Future<void> clearCart() async {
     String userId = "temp"; // Retrieve this from your authentication method
-    DocumentReference cartRef = _firestore.collection('carts_users').doc(userId);
+    DocumentReference cartRef =
+        _firestore.collection('carts_users').doc(userId);
 
     // Clear the cart items by setting an empty array
-    await cartRef.update({
-      'items': []
-    });
+    await cartRef.update({'items': []});
   }
 
   Future<void> addImpact(Map<String, dynamic> impactData) async {
     // Calculate impact values based on provided input (you can adjust these calculations as needed)
-    double carbonFootprint = _calculateCarbonFootprint(impactData['weight'], impactData['brand']);
-    double waterUsage = _calculateWaterUsage(impactData['weight'], impactData['material']);
+    double carbonFootprint =
+        _calculateCarbonFootprint(impactData['weight'], impactData['brand']);
+    double waterUsage =
+        _calculateWaterUsage(impactData['weight'], impactData['material']);
     double wasteDiverted = _calculateWasteDiverted(impactData['weight']);
 
     // Prepare the SustainabilityImpactModel to save
@@ -127,7 +134,10 @@ class FirebaseService {
     );
 
     // Save impact to Firestore
-    await _firestore.collection('impacts').doc(impact.productId).set(impact.toMap());
+    await _firestore
+        .collection('impacts')
+        .doc(impact.productId)
+        .set(impact.toMap());
   }
 
   double _calculateCarbonFootprint(double weight, String brand) {
@@ -157,17 +167,43 @@ class FirebaseService {
 
   Future<List<SustainabilityImpactModel>> fetchAllImpactItems() async {
     final snapshot = await _firestore.collection('impacts').get();
-    return snapshot.docs.map((doc) => SustainabilityImpactModel.fromMap(doc.data())).toList();
+    return snapshot.docs
+        .map((doc) => SustainabilityImpactModel.fromMap(doc.data()))
+        .toList();
+  }
+
+  Stream<List<Event>> fetchUpcomingEvents() {
+    return FirebaseFirestore.instance
+        .collection('events')
+        .where('date',
+            isGreaterThan:
+                Timestamp.now()) // Ensure you're only fetching future events
+        .orderBy('date')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Event(
+          id: doc.id,
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          date: (data['date'] as Timestamp).toDate(),
+          location: data['location'] ?? '',
+          imageUrl: data['imageUrl'] ?? '',
+          tags: List<String>.from(data['tags'] ?? []),
+        );
+      }).toList();
+    });
   }
 
   Future<void> createOrder(Map<String, dynamic> orderDetails) async {
-  try {
-    String userId = currentUserId;
-    final ordersCollection = FirebaseFirestore.instance.collection('orders');
-    await ordersCollection.add(orderDetails);
-  } catch (e) {
-    throw Exception('Failed to create order: $e');
-  }
+    try {
+      String userId = currentUserId;
+      final ordersCollection = FirebaseFirestore.instance.collection('orders');
+      await ordersCollection.add(orderDetails);
+    } catch (e) {
+      throw Exception('Failed to create order: $e');
+    }
   }
 
 
