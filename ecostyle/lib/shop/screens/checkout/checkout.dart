@@ -5,6 +5,8 @@ import 'package:ecostyle/AppScaffold.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/views/list_items_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -14,7 +16,24 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String? _selectedPaymentMethod;
+  String? _shippingAddress; // Variable to store the shipping address
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserAddress();
+  }
+
+  // Fetch the user's shipping address from Firestore
+  Future<void> _fetchUserAddress() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance.collection('User').doc(user.email).get();
+      setState(() {
+        _shippingAddress = userDoc.data()?['address'] ?? 'Address not available';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +74,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 20),
                   _buildTotalSection(cartItems),
                   const SizedBox(height: 20),
-                  _buildPaymentMethodSection(context),
+                  const PaymentMethodSection(),
                   const SizedBox(height: 20),
-                  _buildShippingAddressSection(context),
+                  _buildShippingAddressSection(),
                 ],
               )
                   : const Center(child: Text('Your cart is empty.')),
@@ -70,7 +89,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               onPressed: () async {
                 await _handlePlaceOrder(firebaseService, cartItems);
               },
-              child: Text('Place Order (\$${(_calculateTotal(cartItems) + 2000).toStringAsFixed(2)})'),
+              child: Text(
+                  'Place Order (\$${(_calculateTotal(cartItems) + 2000).toStringAsFixed(2)})'),
             ),
           )
               : null,
@@ -79,16 +99,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Build cart item row
   Widget _buildCartItemRow(BuildContext context, ProductModel item) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(item.title, style: Theme.of(context).textTheme.bodyMedium),
-        Text('\$${item.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium),
+        Text('\$${item.price.toStringAsFixed(2)}',
+            style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
 
+  // Build total section
   Widget _buildTotalSection(List<ProductModel> items) {
     double total = _calculateTotal(items);
     return Column(
@@ -98,53 +121,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         const SizedBox(height: 10),
         Text('Platform cost: \$2000.00'),
         const SizedBox(height: 10),
-        Text('Total: \$${(total + 2000).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('Total: \$${(total + 2000).toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildPaymentMethodSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Payment Method', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10.0),
-        ListTile(
-          title: const Text('Credit Card'),
-          leading: Radio<String>(
-            value: 'credit_card',
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) {
-              setState(() {
-                _selectedPaymentMethod = value;
-              });
-            },
-          ),
-        ),
-        ListTile(
-          title: const Text('Cash on Delivery'),
-          leading: Radio<String>(
-            value: 'cash_on_delivery',
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) {
-              setState(() {
-                _selectedPaymentMethod = value;
-              });
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildShippingAddressSection(BuildContext context) {
+  // Shipping address section
+  Widget _buildShippingAddressSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Shipping Address', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10.0),
         Text(
-          'Lorem ipsum dolor sit amet,\n1234 Main St, Apt 5B,\nSpringfield, USA',
+          _shippingAddress ?? 'Loading address...',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
@@ -155,24 +146,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return items.fold(0.0, (total, item) => total + item.price);
   }
 
+  // Handle placing order
   Future<void> _handlePlaceOrder(FirebaseService firebaseService, List<ProductModel> cartItems) async {
     var connectivityResult = await Connectivity().checkConnectivity();
 
     if (connectivityResult == ConnectivityResult.none) {
-      // Show offline modal
       _showOfflineDialog();
       return;
     }
 
-    if (_selectedPaymentMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a payment method')),
-      );
-      return;
-    }
+    try {
+      await firebaseService.createOrder({
+        'items': cartItems.map((item) => item.toMap()).toList(),
+        'paymentMethod': 'credit_card', // Hardcoded for now, to be updated
+        'totalAmount': _calculateTotal(cartItems) + 2000,
+        'orderDate': FieldValue.serverTimestamp(),
+      });
 
-    await firebaseService.clearCart(); // Clear the cart after placing the order
-    _showSuccessDialog();
+      await firebaseService.clearCart();
+      _showSuccessDialog();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to place order: $e')),
+      );
+    }
   }
 
   void _showOfflineDialog() {
@@ -206,7 +203,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
+                    builder: (context) =>
+                        AppScaffold(child: ListItemsView(), routeName: '/list'),
                   ),
                 );
               },
@@ -215,6 +213,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         );
       },
+    );
+  }
+}
+
+class PaymentMethodSection extends StatefulWidget {
+  const PaymentMethodSection({super.key});
+
+  @override
+  _PaymentMethodSectionState createState() => _PaymentMethodSectionState();
+}
+
+class _PaymentMethodSectionState extends State<PaymentMethodSection> {
+  String? _selectedPaymentMethod;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Payment Method', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 10.0),
+        ListTile(
+          title: const Text('Credit Card'),
+          leading: Radio<String>(
+            value: 'credit_card',
+            groupValue: _selectedPaymentMethod,
+            onChanged: (value) {
+              setState(() {
+                _selectedPaymentMethod = value;
+              });
+            },
+          ),
+        ),
+        ListTile(
+          title: const Text('Cash on Delivery'),
+          leading: Radio<String>(
+            value: 'cash_on_delivery',
+            groupValue: _selectedPaymentMethod,
+            onChanged: (value) {
+              setState(() {
+                _selectedPaymentMethod = value;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 }
