@@ -76,9 +76,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: 20),
                         _buildTotalSection(cartItems),
                         const SizedBox(height: 20),
-                        _buildPaymentMethodSection(context),
+                        _buildPaymentMethodSection(),
                         const SizedBox(height: 20),
-                        _buildShippingAddressSection(context),
+                        _buildShippingAddressSection(),
                       ],
                     )
                   : const Center(child: Text('Your cart is empty.')),

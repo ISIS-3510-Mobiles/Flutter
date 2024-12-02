@@ -126,7 +126,7 @@ class AppScaffold extends StatelessWidget {
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.add, color: Colors.white),
+                        leading: const Icon(Icons.event, color: Colors.white),
                         title: const Text(
                           'Events',
                           style: TextStyle(color: Colors.white),

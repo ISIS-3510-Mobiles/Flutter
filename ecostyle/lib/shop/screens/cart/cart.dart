@@ -179,52 +179,7 @@ class CartItemsList extends StatelessWidget {
   }
 }
 
-class CartItemsList extends StatelessWidget {
-  final List<ProductModel> cartItems;
-  final Future<void> Function(String title) onRemove;
 
-  const CartItemsList({
-    super.key,
-    required this.cartItems,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: cartItems.length,
-      itemBuilder: (context, index) {
-        final item = cartItems[index];
-        return CartItemWidget(
-          item: item,
-          onRemove: () async {
-            final confirm = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Remove Item'),
-                content: Text('Are you sure you want to remove "${item.title}" from the cart?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Remove'),
-                  ),
-                ],
-              ),
-            );
-
-            if (confirm == true) {
-              await onRemove(item.title);
-            }
-          },
-        );
-      },
-    );
-  }
-}
 
 class CheckoutButton extends StatelessWidget {
   final List<ProductModel> cartItems;
@@ -253,3 +208,4 @@ class CheckoutButton extends StatelessWidget {
       ),
     );
   }
+}
