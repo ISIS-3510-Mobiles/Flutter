@@ -69,64 +69,72 @@ class _OrdersViewState extends State<OrdersView> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: orders.length,
-          itemBuilder: (context, index) {
-            final order = orders[index];
-            return Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Order Date: ${order['orderDate'] ?? 'N/A'}'),
-                    Text('Total Amount: \$${order['totalAmount']}'),
-                    Text('Status: ${order['status']}'),
-                    Text('Payment Method: ${order['paymentMethod']}'),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 100, // Altura fija para evitar desbordamientos
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: order['items'].length,
-                        itemBuilder: (context, itemIndex) {
-                          final item = order['items'][itemIndex];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Column(
-                              children: [
-                                Image.network(
-                                  item['image'] ?? '',
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  item['title'] ?? 'No title',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                Text(
-                                  '\$${item['price']}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ],
+        child: orders.isEmpty
+            ? const Center(child: Text('No orders found.'))
+            : ListView.builder(
+                itemCount: orders.length,
+                itemBuilder: (context, index) {
+                  final order = orders[index];
+                  return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Order Date: ${order['orderDate'] ?? 'N/A'}'),
+                          Text('Total Amount: \$${order['totalAmount']}'),
+                          Text('Status: ${order['status']}'),
+                          Text('Payment Method: ${order['paymentMethod']}'),
+                          const SizedBox(height: 10),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: List.generate(
+                                order['items'].length,
+                                (itemIndex) {
+                                  final item = order['items'][itemIndex];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Column(
+                                      children: [
+                                        Image.network(
+                                          item['image'] ?? '',
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        const SizedBox(height: 5),
+                                        SizedBox(
+                                          width: 80, // Ensure item title fits
+                                          child: Text(
+                                            item['title'] ?? 'No title',
+                                            style: const TextStyle(fontSize: 12),
+                                            overflow: TextOverflow.ellipsis, // Avoid overflow
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                        Text(
+                                          '\$${item['price']}',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }
