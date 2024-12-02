@@ -18,26 +18,22 @@ class _OrdersViewState extends State<OrdersView> {
 
   Future<void> _loadOrdersFromFirebase() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('orders').get();
-      List<Map<String, dynamic>> loadedOrders = [];
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('orders').get();
 
-      for (var doc in querySnapshot.docs) {
-        Map<String, dynamic> orderData = {
-          "orderId": doc['orderId'],
-          "orderDate": doc['orderDate'] != null ? doc['orderDate'].toDate() : null,
-          "status": doc['status'],
-          "totalAmount": doc['totalAmount'],
-          "userId": doc['userId'],
-          "items": [],
+      List<Map<String, dynamic>> loadedOrders = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          "orderDate": data['orderDate'] != null
+              ? (data['orderDate'] as Timestamp).toDate()
+              : null,
+          "status": data['status'] ?? 'Confirmed',
+          "totalAmount": data['totalAmount'],
+          "userId": data['userId'],
+          "items": data['items'] ?? [],
+          "paymentMethod": data['paymentMethod'] ?? 'Not specified',
         };
-
-        // Fetch item details
-        List<DocumentReference> itemRefs = List<DocumentReference>.from(doc['items']);
-        List<Map<String, dynamic>> itemDetails = await _fetchItemDetails(itemRefs);
-        orderData['items'] = itemDetails;
-
-        loadedOrders.add(orderData);
-      }
+      }).toList();
 
       setState(() {
         orders = loadedOrders;
@@ -51,35 +47,21 @@ class _OrdersViewState extends State<OrdersView> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchItemDetails(List<DocumentReference> itemRefs) async {
-    List<Map<String, dynamic>> itemDetailsList = [];
-    for (DocumentReference itemRef in itemRefs) {
-      DocumentSnapshot itemSnapshot = await itemRef.get();
-      if (itemSnapshot.exists) {
-        itemDetailsList.add(itemSnapshot.data() as Map<String, dynamic>);
-      }
-    }
-    return itemDetailsList;
-  }
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF012826),
-        title: Text(
+        backgroundColor: const Color(0xFF012826),
+        title: const Text(
           'My Orders',
           style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/list');
           },
@@ -96,62 +78,51 @@ class _OrdersViewState extends State<OrdersView> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              margin: EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                title: Text('Order ID: ${order['orderId']}'),
-                subtitle: Column(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Date: ${order['orderDate'] != null ? order['orderDate']!.toLocal() : 'Date not available'}',
-                    ),
-                    Text('Total: \$${order['totalAmount']}'),
+                    Text('Order Date: ${order['orderDate'] ?? 'N/A'}'),
+                    Text('Total Amount: \$${order['totalAmount']}'),
                     Text('Status: ${order['status']}'),
-                    Text(
-                      'Items: ${order['items'].map((item) => item['title'] ?? 'Unnamed').join(', ')}',
-                    ),
+                    Text('Payment Method: ${order['paymentMethod']}'),
+                    const SizedBox(height: 10),
                     SizedBox(
-                      height: 100, // Adjust the height as needed
+                      height: 100, // Altura fija para evitar desbordamientos
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: order['items'].length,
                         itemBuilder: (context, itemIndex) {
                           final item = order['items'][itemIndex];
-                          return item['imageUrl'] != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Image.network(
-                                    item['imageUrl'],
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Container(
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Column(
+                              children: [
+                                Image.network(
+                                  item['image'] ?? '',
                                   width: 80,
                                   height: 80,
-                                  color: Colors.grey[300], // Placeholder for missing image
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.image,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                );
+                                  fit: BoxFit.cover,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  item['title'] ?? 'No title',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  '\$${item['price']}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ),
                   ],
                 ),
-                isThreeLine: true,
-                onTap: () {
-                  // Navigate to detailed order view with the order data passed as arguments
-                  Navigator.pushNamed(
-                    context,
-                    '/orderDetail',
-                    arguments: order,
-                  );
-                },
               ),
             );
           },

@@ -5,6 +5,8 @@ import 'package:ecostyle/AppScaffold.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/views/list_items_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -42,37 +44,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               padding: const EdgeInsets.all(24.0),
               child: cartItems.isNotEmpty
                   ? Column(
-                children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: cartItems.length,
-                    itemBuilder: (context, index) {
-                      final item = cartItems[index];
-                      return _buildCartItemRow(context, item);
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTotalSection(cartItems),
-                  const SizedBox(height: 20),
-                  _buildPaymentMethodSection(context),
-                  const SizedBox(height: 20),
-                  _buildShippingAddressSection(context),
-                ],
-              )
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: cartItems.length,
+                          itemBuilder: (context, index) {
+                            final item = cartItems[index];
+                            return _buildCartItemRow(context, item);
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTotalSection(cartItems),
+                        const SizedBox(height: 20),
+                        _buildPaymentMethodSection(context),
+                        const SizedBox(height: 20),
+                        _buildShippingAddressSection(context),
+                      ],
+                    )
                   : const Center(child: Text('Your cart is empty.')),
             ),
           ),
           bottomNavigationBar: cartItems.isNotEmpty
               ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () async {
-                await _handlePlaceOrder(firebaseService, cartItems);
-              },
-              child: Text('Place Order (\$${(_calculateTotal(cartItems) + 2000).toStringAsFixed(2)})'),
-            ),
-          )
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await _handlePlaceOrder(firebaseService, cartItems);
+                    },
+                    child: Text(
+                        'Place Order (\$${(_calculateTotal(cartItems) + 2000).toStringAsFixed(2)})'),
+                  ),
+                )
               : null,
         );
       },
@@ -84,7 +87,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(item.title, style: Theme.of(context).textTheme.bodyMedium),
-        Text('\$${item.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium),
+        Text('\$${item.price.toStringAsFixed(2)}',
+            style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
@@ -98,7 +102,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         const SizedBox(height: 10),
         Text('Platform cost: \$2000.00'),
         const SizedBox(height: 10),
-        Text('Total: \$${(total + 2000).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('Total: \$${(total + 2000).toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -155,11 +160,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return items.fold(0.0, (total, item) => total + item.price);
   }
 
-  Future<void> _handlePlaceOrder(FirebaseService firebaseService, List<ProductModel> cartItems) async {
+  Future<void> _handlePlaceOrder(
+      FirebaseService firebaseService, List<ProductModel> cartItems) async {
     var connectivityResult = await Connectivity().checkConnectivity();
 
     if (connectivityResult == ConnectivityResult.none) {
-      // Show offline modal
       _showOfflineDialog();
       return;
     }
@@ -171,8 +176,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    await firebaseService.clearCart(); // Clear the cart after placing the order
-    _showSuccessDialog();
+    try {
+      await firebaseService.createOrder({
+      'items': cartItems.map((item) => item.toMap()).toList(),
+      'paymentMethod': _selectedPaymentMethod,
+      'totalAmount': _calculateTotal(cartItems) + 2000,
+      'orderDate': FieldValue.serverTimestamp(), 
+    });
+
+      await firebaseService.clearCart();
+      _showSuccessDialog();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to place order: $e')),
+      );
+    }
   }
 
   void _showOfflineDialog() {
@@ -206,7 +224,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => AppScaffold(child: ListItemsView(), routeName: '/list'),
+                    builder: (context) =>
+                        AppScaffold(child: ListItemsView(), routeName: '/list'),
                   ),
                 );
               },

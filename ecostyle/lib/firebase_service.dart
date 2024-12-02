@@ -2,9 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/models/sustainability_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+
+  String get currentUserId {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently authenticated.');
+    }
+    return user.uid;
+  }
+
 
   Future<List<ProductModel>> fetchProducts() async {
     QuerySnapshot snapshot = await _firestore.collection('products').get();
@@ -147,4 +159,17 @@ class FirebaseService {
     final snapshot = await _firestore.collection('impacts').get();
     return snapshot.docs.map((doc) => SustainabilityImpactModel.fromMap(doc.data())).toList();
   }
+
+  Future<void> createOrder(Map<String, dynamic> orderDetails) async {
+  try {
+    String userId = currentUserId;
+    final ordersCollection = FirebaseFirestore.instance.collection('orders');
+    await ordersCollection.add(orderDetails);
+  } catch (e) {
+    throw Exception('Failed to create order: $e');
+  }
+  }
+
+
+
 }
