@@ -30,9 +30,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       // Assuming you have a "users" collection where user data is stored
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final userDoc = await FirebaseFirestore.instance.collection('User').doc(user.email).get();
       setState(() {
-        _shippingAddress = userDoc.data()?['shippingAddress'] ?? 'Address not available';
+        _shippingAddress = userDoc.data()?['address'] ?? 'Address not available';
       });
     }
   }
