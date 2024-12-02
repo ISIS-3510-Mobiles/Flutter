@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,6 +7,7 @@ class AppScaffold extends StatelessWidget {
   final Widget child;
   final String? routeName;
   final FlutterSecureStorage secureStorage = FlutterSecureStorage(); // Initialize secure storage
+
 
   AppScaffold({
     Key? key,
@@ -67,6 +69,16 @@ class AppScaffold extends StatelessWidget {
                         },
                       ),
                       ListTile(
+                        leading: const Icon(Icons.receipt , color: Colors.white),
+                        title: const Text(
+                          'Orders',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/orders');
+                        },
+                      ),
+                      ListTile(
                         leading: const Icon(Icons.list, color: Colors.white),
                         title: const Text(
                           'List Items',
@@ -93,6 +105,13 @@ class AppScaffold extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                         onTap: () {
+                          // Log the feature access event
+                          FirebaseAnalytics.instance.logEvent(
+                            name: 'feature_accessed',
+                            parameters: {
+                              'feature_name': 'sustainability',
+                            },
+                          );
                           Navigator.pushNamed(context, '/sustainability');
                         },
                       ),
@@ -104,6 +123,16 @@ class AppScaffold extends StatelessWidget {
                         ),
                         onTap: () {
                           Navigator.pushNamed(context, '/addItem');
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.add, color: Colors.white),
+                        title: const Text(
+                          'Events',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/events');
                         },
                       ),
                       const Divider(color: Colors.white), // White divider

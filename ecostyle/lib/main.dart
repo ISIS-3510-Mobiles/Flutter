@@ -1,4 +1,5 @@
 import 'package:ecostyle/AppScaffold.dart';
+import 'package:ecostyle/personalization/screens/events/events.dart';
 import 'package:ecostyle/shop/controlers/ProductModelAdapter.dart';
 import 'package:ecostyle/shop/screens/addItem/addItem.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import 'views/list_items_view.dart';
 import 'views/detail_view.dart';
 import 'views/sustainable_recommendation.dart';
 import 'views/update_info_view.dart';
+import 'views/orders_view.dart';
+import 'views/order_detail_view.dart';
 import 'package:ecostyle/shop/screens/cart/cart.dart';
 import 'package:ecostyle/personalization/screens/sustainability/sustainability.dart';
 
@@ -61,6 +64,11 @@ class MyApp extends StatelessWidget {
           '/sustainability': (context) => AppScaffold(child: const Sustainability(), routeName: '/sustainability'),
           '/recommendation': (context) => AppScaffold(child: const SustainableRecommendationView(), routeName: '/recommendation'),
           '/addItem': (context) => AppScaffold(child:  AddProductScreen(), routeName: '/addItem'),
+          '/events': (context) => AppScaffold(child:  EventsScreen(), routeName: '/events'),
+          '/orders': (context) => AppScaffold(child:  OrdersView(), routeName: '/orders'),
+          '/orderDetail': (context) {final order = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return AppScaffold(child: OrderDetailView(order: order), routeName: '/orderDetail');
+          }
         },
       ),
     );

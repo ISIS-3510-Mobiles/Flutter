@@ -5,6 +5,8 @@ import 'package:ecostyle/AppScaffold.dart';
 import 'package:ecostyle/firebase_service.dart';
 import 'package:ecostyle/models/product_model.dart';
 import 'package:ecostyle/views/list_items_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -15,6 +17,25 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String? _selectedPaymentMethod;
+  String? _shippingAddress; // Variable to store the shipping address
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserAddress();
+  }
+
+  // Fetch the user's shipping address from Firestore
+  Future<void> _fetchUserAddress() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Assuming you have a "users" collection where user data is stored
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      setState(() {
+        _shippingAddress = userDoc.data()?['shippingAddress'] ?? 'Address not available';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +76,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 20),
                   _buildTotalSection(cartItems),
                   const SizedBox(height: 20),
-                  _buildPaymentMethodSection(context),
+                  _buildPaymentMethodSection(),
                   const SizedBox(height: 20),
-                  _buildShippingAddressSection(context),
+                  _buildShippingAddressSection(),
                 ],
               )
                   : const Center(child: Text('Your cart is empty.')),
@@ -79,6 +100,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Build cart item row
   Widget _buildCartItemRow(BuildContext context, ProductModel item) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,6 +111,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Build total section
   Widget _buildTotalSection(List<ProductModel> items) {
     double total = _calculateTotal(items);
     return Column(
@@ -103,7 +126,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildPaymentMethodSection(BuildContext context) {
+  // Payment method section
+  Widget _buildPaymentMethodSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,24 +161,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildShippingAddressSection(BuildContext context) {
+  // Shipping address section
+  Widget _buildShippingAddressSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Shipping Address', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 10.0),
         Text(
-          'Lorem ipsum dolor sit amet,\n1234 Main St, Apt 5B,\nSpringfield, USA',
+          _shippingAddress ?? 'Loading address...',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
     );
   }
 
+  // Calculate total price
   double _calculateTotal(List<ProductModel> items) {
     return items.fold(0.0, (total, item) => total + item.price);
   }
 
+  // Handle placing order
   Future<void> _handlePlaceOrder(FirebaseService firebaseService, List<ProductModel> cartItems) async {
     var connectivityResult = await Connectivity().checkConnectivity();
 
@@ -175,6 +202,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _showSuccessDialog();
   }
 
+  // Show offline dialog
   void _showOfflineDialog() {
     showDialog(
       context: context,
@@ -193,6 +221,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Show success dialog
   void _showSuccessDialog() {
     showDialog(
       context: context,
