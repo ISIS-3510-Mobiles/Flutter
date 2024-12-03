@@ -3,24 +3,26 @@ import 'package:flutter/material.dart';
 class OrderDetailView extends StatelessWidget {
   final Map<String, dynamic> order;
 
-  OrderDetailView({Key? key, required this.order}) : super(key: key);
+  const OrderDetailView({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Ensure 'items' is a valid list or set to an empty list if null
+    List<dynamic> items = (order['items'] != null && order['items'] is List)
+        ? List.from(order['items'])
+        : [];
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF012826),
         title: const Text(
           'Order Details',
           style: TextStyle(color: Colors.white),
         ),
+        backgroundColor: const Color(0xFF012826),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/orders');
+            Navigator.pop(context);
           },
         ),
       ),
@@ -30,148 +32,92 @@ class OrderDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Order ID: ${order['orderId'] ?? 'N/A'}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Order Date: ${order['orderDate'] ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Date: ${order['orderDate'] != null ? order['orderDate'].toLocal() : 'Date not available'}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Total Amount: \$${order['totalAmount'] ?? 'N/A'}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               'Status: ${order['status'] ?? 'N/A'}',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            const SizedBox(height: 8),
+            Text(
+              'Total Amount: \$${order['totalAmount'] ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Payment Method: ${order['paymentMethod'] ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            Text(
               'Items:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Expanded(
-              child: order['items'] != null && order['items'].isNotEmpty
-                  ? ListView.builder(
-                      itemCount: order['items'].length,
+              child: items.isEmpty
+                  ? Center(
+                      child: Text('No items available for this order.'),
+                    )
+                  : ListView.builder(
+                      itemCount: items.length,
                       itemBuilder: (context, index) {
-                        final item = order['items'][index];
-                        return GestureDetector(
-                          onTap: () {
-                          Navigator.pushNamed(
-                           context,
-                           '/detail',
-                           arguments: {
-                            'item': item, // Current product item
-                            'allItems': order['items'], // All items in the order
-                               },
-                              );
-                            },
-
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: item['imageUrl'] != null &&
-                                            Uri.tryParse(item['imageUrl'])?.hasAbsolutePath == true
-                                        ? Image.network(
-                                            item['imageUrl'],
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                            loadingBuilder: (context, child, loadingProgress) {
-                                              if (loadingProgress == null) {
-                                                return child;
-                                              } else {
-                                                return Center(
-                                                  child: CircularProgressIndicator(
-                                                    value: loadingProgress.expectedTotalBytes != null
-                                                        ? loadingProgress.cumulativeBytesLoaded /
-                                                            (loadingProgress.expectedTotalBytes ?? 1)
-                                                        : null,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            errorBuilder: (context, error, stackTrace) {
-                                              print('Image loading error: $error');
-                                              return Container(
-                                                width: 100,
-                                                height: 100,
-                                                color: Colors.grey[300],
-                                                child: const Center(
-                                                  child: Icon(
-                                                    Icons.error,
-                                                    size: 50,
-                                                    color: Colors.red,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          )
-                                        : Container(
-                                            width: 100,
-                                            height: 100,
-                                            color: Colors.grey[300],
-                                            child: const Center(
-                                              child: Icon(
-                                                Icons.image,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
+                        final item = items[index];
+                        if (item == null || item is! Map<String, dynamic>) {
+                          return Container(); // Skip invalid items
+                        }
+                        return Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                item['image'] != null && item['image'].isNotEmpty
+                                    ? Image.network(
+                                        item['image'],
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Icon(
+                                        Icons.image_not_supported,
+                                        size: 80,
+                                        color: Colors.grey[400],
+                                      ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['title'] ?? 'No title',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                      Text(
+                                        '\$${item['price'] ?? 'N/A'}',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item['title'] ?? 'Unnamed Item',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          'Price: \$${item['price'] ?? 'N/A'}',
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          'Description: ${item['description'] ?? 'No description'}',
-                                          style: const TextStyle(fontSize: 12),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_forward),
+                                  onPressed: () {
+                                    // Navigate to item detail screen
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/detail',
+                                      arguments: item, // Pass the item data
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         );
                       },
-                    )
-                  : const Center(
-                      child: Text(
-                        'No items available for this order.',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
                     ),
             ),
           ],
