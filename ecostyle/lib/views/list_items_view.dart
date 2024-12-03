@@ -4,8 +4,11 @@ import 'package:geolocator/geolocator.dart'; // Para obtener la ubicación del u
 import 'package:cloud_firestore/cloud_firestore.dart'; // Para Firestore
 import 'dart:async'; // Importa la librería Timer para Eventual Connectivity
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'dart:isolate'; // Usa Isolate para multi-threading
 import 'dart:math'; // Para calcular la distancia entre dos puntos
+import 'dart:convert'; // Para convertir Map a JSON
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ListItemsView extends StatefulWidget {
   @override
@@ -18,43 +21,45 @@ class _ListItemsViewState extends State<ListItemsView> {
   List<Map<String, dynamic>> recentlyViewedItems = [];
   Position? userPosition;
   bool isLoading = true;
-  bool isOffline = false; // Estado de conexión
-  //Timer? connectionTimer;
-  //bool loaded = false;
+  Timer? connectionTimer;
+  bool loaded = false;
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   Map<String,dynamic> itemRecommended = {"title": "Sporty Jacket", "price": 120000, "image": "https://firebasestorage.googleapis.com/v0/b/kotlin-firebase-503a6.appspot.com/o/images%2Fsporty_jacket.png?alt=media&token=3c413908-747d-4f9b-8598-c35f2f40cbe7", "latitude": 4.6351, "longitude": -74.0703, "description": "Sporty Jacket size L. I bought it for a trip but never ended up using it.", "category": "Jacket", "carbonFootprint":2.25, "wasteDiverted":1.5,"waterUsage":3000, 'sustainabilityPercentage':75};
-
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
-    _startConnectivityMonitoring();
+    _loadRecentlyViewedItems(); // Cargar elementos al iniciar
     _loadItemsFromFirebase();
+    _startConnectivityCheck(); // Inicia el chequeo de conectividad
   }
 
   @override
   void dispose() {
-    _connectivitySubscription.cancel();
-    //connectionTimer?.cancel();
+    connectionTimer?.cancel();
     super.dispose();
   }
 
-  void _startConnectivityMonitoring() {
-    _connectivitySubscription = 
-        Connectivity().onConnectivityChanged.listen((connectivityResult) {
+  // Cargar datos desde local storage
+  Future<void> _loadRecentlyViewedItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? storedItems = prefs.getString('recentlyViewedItems');
+    if (storedItems != null) {
       setState(() {
-        isOffline = connectivityResult == ConnectivityResult.none;
+        recentlyViewedItems = List<Map<String, dynamic>>.from(
+          jsonDecode(storedItems),
+        );
       });
-
-      if (!isOffline) {
-        // Si la conexión se restaura, intenta cargar los datos
-        _loadItemsFromFirebase();
-      }
-    });
+    }
   }
 
-  /** 
-   Método que inicializa el chequeo de conectividad eventual
+  // Guardar datos en local storage
+  Future<void> _saveRecentlyViewedItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('recentlyViewedItems', jsonEncode(recentlyViewedItems));
+  }
+
+  // Método que inicializa el chequeo de conectividad eventual
   void _startConnectivityCheck() {
     connectionTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -75,7 +80,7 @@ class _ListItemsViewState extends State<ListItemsView> {
     });
   }
 
-    /** 
+  Future<void> _loadItemsFromFirebase() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       // No hay conexión a internet
@@ -89,13 +94,7 @@ class _ListItemsViewState extends State<ListItemsView> {
         ),
       );
       return; // Sale de la función si no hay conexión
-    }*////
-  *////
-
-  Future<void> _loadItemsFromFirebase() async {
-    if (isOffline) return; // No intenta cargar si no hay conexión
-
-    
+    }
 
     try {
       final querySnapshot = await FirebaseFirestore.instance.collection('items').get();
@@ -112,17 +111,9 @@ class _ListItemsViewState extends State<ListItemsView> {
           "wasteDiverted": doc['wasteDiverted'],
           "waterUsage": doc['waterUsage'],
           "sustainabilityPercentage": doc['sustainabilityPercentage'],
-          /**
-          "title": doc['name'],
-          "price": doc['price'],
-          "image": doc['imageResource'],
-          "latitude": doc['latitude'],
-          "longitude": doc['longitude'],
-          "description": doc['description'],
-          */
         };
       }).toList();
-      //loaded = true;
+      loaded = true;
       setState(() {
         original_items = loadedItems;
         items = List.from(original_items);
@@ -220,37 +211,19 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
 
   @override
   Widget build(BuildContext context) {
-
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
-    }
-
-    if (isOffline) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Color(0xFF012826),
-          title: Text('EcoStyle'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.wifi_off, size: 80, color: Colors.red),
-              SizedBox(height: 16),
-              Text(
-                'No internet connection. Please check your network.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-            ],
-          ),
-        ),
-      );
     }
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF012826),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white), // Aquí cambiamos el color del ícono
+            onPressed: () {
+              Navigator.pop(context); // Esta acción hace que se regrese a la pantalla anterior
+            },
+        ),
         title: Row(
           children: [
             Expanded(
@@ -267,7 +240,9 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
                 ),
               ),
             ),
-            IconButton(icon: Icon(Icons.shopping_cart, color: Colors.white), onPressed: () {}),
+            IconButton(icon: Icon(Icons.shopping_cart, color: Colors.white), onPressed: () {
+              Navigator.pushNamed(context, '/cart', arguments: {}); 
+            }),
           ],
         ),
       ),
@@ -303,30 +278,9 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
                           fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width * 0.4,
                           height: MediaQuery.of(context).size.height * 0.2,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Icono de "imagen no disponible"
-                            return const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.image_not_supported,
-                                    size: 50,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'No image available',
-                                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
                         ),
                       ),
                     ),
-
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
@@ -428,8 +382,39 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
 
   }
 
+  void _logCategoryView(String category) {
+     analytics.logEvent(
+      name: 'category_view',
+      parameters: {
+        'category': category,
+      },
+    );
+  }
+  /** 
+  Future<void> _sendAnalyticsEvent() async {
+    // Only strings and numbers (longs & doubles for android, ints and doubles for iOS) are supported for GA custom event parameters:
+    // https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#+logeventwithname:parameters:
+    // https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics#public-void-logevent-string-name,-bundle-params
+    await widget.analytics.logEvent(
+      name: 'test_event',
+      parameters: <String, Object>{
+        'string': 'string',
+        'int': 42,
+        'long': 12345678910,
+        'double': 42.0,
+        // Only strings and numbers (ints & doubles) are supported for GA custom event parameters:
+        // https://developers.google.com/analytics/devguides/collection/analyticsjs/custom-dims-mets#overview
+        'bool': true.toString(),
+      },
+    );
+
+    setMessage('logEvent succeeded');
+  }*/
+
   void _viewItem(BuildContext context, Map<String, dynamic> item) {
     _getUserLocation();
+    //_logCategoryView(item['category']); // Llama a la función para enviar el evento
+
     List<Map<String, dynamic>> orderedItems = _orderByLocation(userPosition, original_items);
     setState(() {
       // Agrega el producto a la lista de últimos vistos
@@ -437,7 +422,7 @@ static Future<Map<String, dynamic>> _calculateSustainabilityInIsolate(List<Map<S
         recentlyViewedItems.removeAt(0); // Elimina el más antiguo si ya hay 5
       }
       recentlyViewedItems.add(item);
-      
+      _saveRecentlyViewedItems(); // Guardar cambios
       List<String> titleItems = [];
       for (Map<String, dynamic> item in recentlyViewedItems) {
         titleItems.add(item['title']);
