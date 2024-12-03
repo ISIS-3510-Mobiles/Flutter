@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OrdersView extends StatefulWidget {
   @override
@@ -13,19 +15,42 @@ class _OrdersViewState extends State<OrdersView> {
   @override
   void initState() {
     super.initState();
-    _loadOrdersFromFirebase();
+    _loadOrders();
   }
 
-  Future<void> _loadOrdersFromFirebase() async {
+  Future<void> _loadOrders() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? cachedOrders = prefs.getString('cachedOrders');
+
+    if (cachedOrders != null) {
+      // Load cached data
+      List<Map<String, dynamic>> cachedList = List<Map<String, dynamic>>.from(
+        json.decode(cachedOrders).map((item) => Map<String, dynamic>.from(item)),
+      );
+
+      // Convert orderDate strings back to DateTime objects
+      cachedList = cachedList.map((order) {
+        if (order['orderDate'] != null) {
+          order['orderDate'] = DateTime.parse(order['orderDate']);
+        }
+        return order;
+      }).toList();
+
+      setState(() {
+        orders = cachedList;
+        isLoading = false;
+      });
+    }
+
     try {
-      QuerySnapshot querySnapshot =
-          await FirebaseFirestore.instance.collection('orders').get();
+      // Fetch data from Firebase
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('orders').get();
 
       List<Map<String, dynamic>> loadedOrders = querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
         return {
           "orderDate": data['orderDate'] != null
-              ? (data['orderDate'] as Timestamp).toDate()
+              ? (data['orderDate'] as Timestamp).toDate().toIso8601String()
               : null,
           "status": data['status'] ?? 'Confirmed',
           "totalAmount": data['totalAmount'],
@@ -34,6 +59,9 @@ class _OrdersViewState extends State<OrdersView> {
           "paymentMethod": data['paymentMethod'] ?? 'Not specified',
         };
       }).toList();
+
+      // Cache data locally
+      await prefs.setString('cachedOrders', json.encode(loadedOrders));
 
       setState(() {
         orders = loadedOrders;
