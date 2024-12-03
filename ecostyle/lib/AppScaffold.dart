@@ -135,6 +135,15 @@ class AppScaffold extends StatelessWidget {
                           Navigator.pushNamed(context, '/events');
                         },
                       ),
+                      ListTile(
+                        leading: const Icon(Icons.discount, color: Colors.white),
+                        title: const Text(
+                          'Deals',
+                          style: TextStyle(color: Colors.white),),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/discounts');
+                        },
+                      ),
                       const Divider(color: Colors.white), // White divider
                       ListTile(
                         leading: const Icon(Icons.logout, color: Colors.white),
