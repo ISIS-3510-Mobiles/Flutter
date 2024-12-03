@@ -7,9 +7,11 @@ class OrderDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure 'items' is a valid list or set to an empty list if null
-    List<dynamic> items = (order['items'] != null && order['items'] is List)
-        ? List.from(order['items'])
+    // Ensure 'items' is a valid list or set to an empty list if null or not a List
+    List<Map<String, dynamic>> items = (order['items'] != null &&
+            order['items'] is List &&
+            (order['items'] as List).every((element) => element is Map<String, dynamic>))
+        ? List<Map<String, dynamic>>.from(order['items'])
         : [];
 
     return Scaffold(
@@ -64,9 +66,6 @@ class OrderDetailView extends StatelessWidget {
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final item = items[index];
-                        if (item == null || item is! Map<String, dynamic>) {
-                          return Container(); // Skip invalid items
-                        }
                         return Card(
                           elevation: 4,
                           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -101,17 +100,6 @@ class OrderDetailView extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_forward),
-                                  onPressed: () {
-                                    // Navigate to item detail screen
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/detail',
-                                      arguments: item, // Pass the item data
-                                    );
-                                  },
                                 ),
                               ],
                             ),
